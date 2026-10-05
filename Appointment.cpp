@@ -6,7 +6,6 @@
 
 using namespace std;
 
-    // ---------- appointment ----------
     appointment::appointment(int appointment_id,int patient_id,int doctor_id,time_t start_time){
         this->appointment_id=appointment_id;
         this->patient_id=patient_id;
@@ -40,7 +39,6 @@ using namespace std;
         cout<<"Status : "<<status<<endl;
     }
 
-    // ---------- appointmentbook ----------
     appointmentbook::appointmentbook(){
         next_id=1;
     }
@@ -55,7 +53,7 @@ using namespace std;
         t.tm_hour=h; t.tm_min=mi; t.tm_sec=0;
         t.tm_isdst=-1;
         time_t result=mktime(&t);
-        if(t.tm_mday!=d||t.tm_mon!=m-1) return -1;   // e.g. 31-02-2026 got rolled over
+        if(t.tm_mday!=d||t.tm_mon!=m-1) return -1; 
         return result;
     }
 
@@ -130,7 +128,7 @@ using namespace std;
         }
     }
 
-    // File format (one per line): id patient_id doctor_id start_time status
+
     bool appointmentbook::SaveAppointments(string filename){
         ofstream out(filename.c_str());
         if(!out) return false;
