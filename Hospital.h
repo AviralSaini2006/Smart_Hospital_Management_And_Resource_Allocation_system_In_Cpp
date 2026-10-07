@@ -33,6 +33,7 @@ class hospital{
        void assignDoctor();       // gives the most severe waiting patient an available doctor
        bool queuePatient(int patient_id,int severity,string diagnosis);   // set severity and push into priority queue
        void showQueue();
+       void showAdmitted();   // patient - doctor - bed for everyone currently admitted
 }; 
 
 #endif

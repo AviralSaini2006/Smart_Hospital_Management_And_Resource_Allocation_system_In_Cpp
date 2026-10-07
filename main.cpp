@@ -17,7 +17,8 @@ int main(){
         cout<<"9) Assign doctor to most severe patient"<<endl;
         cout<<"10) Allocate beds to admitted patients"<<endl;
         cout<<"11) Discharge a patient"<<endl;
-        cout<<"12) Exit Program"<<endl;
+        cout<<"12) Show admitted patients (doctor and bed)"<<endl;
+        cout<<"13) Exit Program"<<endl;
         cout<<"Answer : ";cin>>ch;
         switch(ch){
             case 1:{
@@ -94,7 +95,11 @@ int main(){
                 h.dischargePatient();
                 break;
             }
-            case 12:
+            case 12:{
+                h.showAdmitted();
+                break;
+            }
+            case 13:
                 return 0;
 
         }

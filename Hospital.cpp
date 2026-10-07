@@ -30,6 +30,10 @@ using namespace std;
 
 // find the patient in the vector, set severity/diagnosis, then push into the priority queue
 bool hospital::queuePatient(int patient_id,int severity,string diagnosis){
+    if(severity<1||severity>10){
+        cout<<"Severity must be between 1 and 10."<<endl;
+        return false;
+    }
     for(size_t i=0;i<patients.size();i++){
         if(patients[i].GetPatientID()==patient_id){
             if(patients[i].GetPatientSeverity()!=-1){
@@ -150,4 +154,31 @@ void hospital::dischargePatient(){
     }
     assignments.erase(assignments.begin()+found);
     cout<<"Patient "<<pid<<" discharged. Doctor and bed are free again."<<endl;
+}
+
+
+void hospital::showAdmitted(){
+    if(assignments.empty()){
+        cout<<"No patients are admitted right now."<<endl;
+        return;
+    }
+    for(size_t a=0;a<assignments.size();a++){
+        int pid=assignments[a].first;
+        int did=assignments[a].second;
+        string pname="?",dname="?";
+        int sev=-1;
+        for(size_t p=0;p<patients.size();p++){
+            if(patients[p].GetPatientID()==pid){ pname=patients[p].GetPatientName(); sev=patients[p].GetPatientSeverity(); }
+        }
+        for(size_t d=0;d<doctors.size();d++){
+            if(doctors[d].GetDocID()==did) dname=doctors[d].GetDocName();
+        }
+        string bedtext="no bed yet";
+        for(size_t b=0;b<beds.size();b++){
+            if(!beds[b].GetBedAvailability() && beds[b].GetPatientBedID()==pid){
+                bedtext="Bed "+to_string(beds[b].GetBedID())+" ("+beds[b].GetWardType()+")";
+            }
+        }
+        cout<<pname<<" (ID "<<pid<<", severity "<<sev<<") | Dr. "<<dname<<" | "<<bedtext<<endl;
+    }
 }
