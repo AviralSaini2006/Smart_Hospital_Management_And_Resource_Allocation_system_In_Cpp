@@ -23,6 +23,9 @@ class patient{
     int GetPatientSeverity();
     bool GetPatientEmergencyStatus();
     void PatientDisplay();
+    void setSeverity(int s);
+    void setDiagnosis(string d);
+    void setEmergencyStatus(bool e);
 };
 
 #endif

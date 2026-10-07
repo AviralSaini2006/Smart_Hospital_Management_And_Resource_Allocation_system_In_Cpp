@@ -1,7 +1,7 @@
 #include "Patient.h"
 #include<iostream>
 using namespace std;
-       patient::patient(int patient_id,string patient_name,int patient_age,char patient_gender,string diagnosis,int severity,bool emergency_status){
+       patient::patient(int patient_id,string patient_name,int patient_age,char patient_gender,string diagnosis="NULL",int severity=-1,bool emergency_status=false){
         this->patient_id=patient_id;
         this->patient_age=patient_age;
         this->patient_name=patient_name;
@@ -39,4 +39,13 @@ using namespace std;
         cout<<"Patient Diagnosis : "<<GetPatientDiagnosis()<<endl;
         cout<<"Patient Severity : "<<GetPatientSeverity()<<endl;
         cout<<"Patient Emergency Status : "<<(GetPatientEmergencyStatus()?"YES":"NO")<<endl;
+    }
+    void patient::setSeverity(int s){
+        severity=s;
+    }
+    void patient::setDiagnosis(string d){
+        diagnosis=d;
+    }
+    void patient::setEmergencyStatus(bool e){
+        emergency_status=e;
     }
