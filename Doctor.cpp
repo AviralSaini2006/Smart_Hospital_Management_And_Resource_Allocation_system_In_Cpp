@@ -37,3 +37,7 @@ using namespace std;
         cout<<"Doctor Availability : "<<(GetDocAvailability()?"Available":"Occupied")<<endl;
         cout<<"Doctor Specialisation : "<<GetDocSpecialisation()<<endl;
        }
+
+void doctor::SetDocAvailability(bool status){
+    availability=status;
+}

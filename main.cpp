@@ -12,7 +12,10 @@ int main(){
         cout<<"4) Display all patients"<<endl;
         cout<<"5) Display all doctors"<<endl;
         cout<<"6) Display all beds"<<endl;
-        cout<<"7) Exit Program"<<endl;
+        cout<<"7) Set severity and add patient to priority queue"<<endl;
+        cout<<"8) Show priority queue"<<endl;
+        cout<<"9) Assign doctor to most severe patient"<<endl;
+        cout<<"10) Exit Program"<<endl;
         cout<<"Answer : ";cin>>ch;
         switch(ch){
             case 1:{
@@ -64,7 +67,24 @@ int main(){
                 h.showBeds();
                 break;
             }
-            case 7:
+            case 7:{
+                int i,sev;
+                string d;
+                cout<<"Enter Patient ID : ";cin>>i;
+                cout<<"Enter Severity (1-10) : ";cin>>sev;
+                cout<<"Enter Diagnosis : ";cin>>d;
+                h.queuePatient(i,sev,d);
+                break;
+            }
+            case 8:{
+                h.showQueue();
+                break;
+            }
+            case 9:{
+                h.assignDoctor();
+                break;
+            }
+            case 10:
                 return 0;
 
         }
