@@ -15,7 +15,9 @@ int main(){
         cout<<"7) Set severity and add patient to priority queue"<<endl;
         cout<<"8) Show priority queue"<<endl;
         cout<<"9) Assign doctor to most severe patient"<<endl;
-        cout<<"10) Exit Program"<<endl;
+        cout<<"10) Allocate beds to admitted patients"<<endl;
+        cout<<"11) Discharge a patient"<<endl;
+        cout<<"12) Exit Program"<<endl;
         cout<<"Answer : ";cin>>ch;
         switch(ch){
             case 1:{
@@ -84,7 +86,15 @@ int main(){
                 h.assignDoctor();
                 break;
             }
-            case 10:
+            case 10:{
+                h.allocateBed();
+                break;
+            }
+            case 11:{
+                h.dischargePatient();
+                break;
+            }
+            case 12:
                 return 0;
 
         }

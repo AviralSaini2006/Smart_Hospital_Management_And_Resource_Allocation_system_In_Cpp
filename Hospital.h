@@ -17,6 +17,7 @@ class hospital{
        vector<bed> beds;
        // (severity, -index in patients vector): highest severity first, earlier patient first on a tie
        priority_queue<pair<int,int> > waiting_queue;
+       vector<pair<int,int> > assignments;   // (patient_id, doctor_id) for patients currently under a doctor
     public:
        hospital(string h):HospitalName(h){}
        void AddPatient(patient p);

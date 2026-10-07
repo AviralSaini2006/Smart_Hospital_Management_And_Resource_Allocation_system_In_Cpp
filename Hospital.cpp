@@ -72,10 +72,82 @@ void hospital::assignDoctor(){
             waiting_queue.pop();
             patient &p=patients[-top.second];
             doctors[i].SetDocAvailability(false);
+            assignments.push_back(make_pair(p.GetPatientID(),doctors[i].GetDocID()));
             cout<<"Patient "<<p.GetPatientName()<<" (severity "<<top.first<<") assigned to Dr. "
                 <<doctors[i].GetDocName()<<" ("<<doctors[i].GetDocSpecialisation()<<")"<<endl;
             return;
         }
     }
     cout<<"No doctor is available. Patient stays in the queue."<<endl;
+}
+
+
+// gives a bed to every patient who has a doctor but no bed yet (most severe first)
+void hospital::allocateBed(){
+    bool any=false;
+    // go from most severe to least severe
+    vector<int> order;
+    for(size_t a=0;a<assignments.size();a++) order.push_back(a);
+    for(size_t x=0;x<order.size();x++){
+        for(size_t y=x+1;y<order.size();y++){
+            int sx=-1,sy=-1;
+            for(size_t p=0;p<patients.size();p++){
+                if(patients[p].GetPatientID()==assignments[order[x]].first) sx=patients[p].GetPatientSeverity();
+                if(patients[p].GetPatientID()==assignments[order[y]].first) sy=patients[p].GetPatientSeverity();
+            }
+            if(sy>sx){ int t=order[x]; order[x]=order[y]; order[y]=t; }
+        }
+    }
+    for(size_t k=0;k<order.size();k++){
+        int pid=assignments[order[k]].first;
+        bool has_bed=false;
+        for(size_t b=0;b<beds.size();b++){
+            if(!beds[b].GetBedAvailability() && beds[b].GetPatientBedID()==pid) has_bed=true;
+        }
+        if(has_bed) continue;
+        int sev=-1;
+        string name="";
+        for(size_t p=0;p<patients.size();p++){
+            if(patients[p].GetPatientID()==pid){ sev=patients[p].GetPatientSeverity(); name=patients[p].GetPatientName(); }
+        }
+        int chosen=-1;
+        for(size_t b=0;b<beds.size();b++){
+            if(!beds[b].GetBedAvailability()) continue;
+            if(sev>=8 && beds[b].GetWardType()=="ICU"){ chosen=b; break; }   // severe patient: ICU first
+            if(chosen==-1) chosen=b;                                          // otherwise any free bed
+            if(sev<8) break;
+        }
+        if(chosen==-1){
+            cout<<"No free bed for "<<name<<"."<<endl;
+            continue;
+        }
+        beds[chosen].AssignPatient(pid);
+        cout<<"Bed "<<beds[chosen].GetBedID()<<" ("<<beds[chosen].GetWardType()<<") given to "<<name<<endl;
+        any=true;
+    }
+    if(!any) cout<<"No new bed was allocated."<<endl;
+}
+
+// frees the doctor and the bed of a patient
+void hospital::dischargePatient(){
+    int pid;
+    cout<<"Enter Patient ID to discharge : ";
+    cin>>pid;
+    int found=-1;
+    for(size_t a=0;a<assignments.size();a++){
+        if(assignments[a].first==pid) found=a;
+    }
+    if(found==-1){
+        cout<<"This patient is not currently admitted."<<endl;
+        return;
+    }
+    int doc_id=assignments[found].second;
+    for(size_t d=0;d<doctors.size();d++){
+        if(doctors[d].GetDocID()==doc_id) doctors[d].SetDocAvailability(true);
+    }
+    for(size_t b=0;b<beds.size();b++){
+        if(!beds[b].GetBedAvailability() && beds[b].GetPatientBedID()==pid) beds[b].Release();
+    }
+    assignments.erase(assignments.begin()+found);
+    cout<<"Patient "<<pid<<" discharged. Doctor and bed are free again."<<endl;
 }
