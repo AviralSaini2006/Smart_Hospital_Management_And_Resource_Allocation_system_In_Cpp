@@ -21,6 +21,7 @@ class doctor{
        bool GetDocAvailability();
        string GetDocSpecialisation();
        void DoctorDisplay();
+       void SetDocAvailability(bool status);
 };
 
 #endif
