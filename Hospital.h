@@ -46,7 +46,10 @@ class hospital{
        void completeAppointment(int appointment_id);
        void showAppointments();
        void saveAppointments();
-       void loadAppointments();   // patient - doctor - bed for everyone currently admitted
+       void loadAppointments();
+
+       void saveData();   // saves patients, doctors, beds and admissions to hospital_data.txt
+       void loadData();   // loads them back and rebuilds the priority queue   // patient - doctor - bed for everyone currently admitted
 }; 
 
 #endif
