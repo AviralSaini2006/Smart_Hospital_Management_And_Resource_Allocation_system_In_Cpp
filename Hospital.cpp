@@ -1,6 +1,29 @@
 #include"Hospital.h"
+#include<fstream>
 using namespace std;
 
+       bool hospital::bedExists(int id){
+          for(size_t i=0;i<beds.size();i++){
+              if(beds[i].GetBedID()==id) return true;
+          }
+          return false;
+       }
+       void hospital::showFreeBeds(){
+          int free_count=0;
+          for(size_t i=0;i<beds.size();i++){
+              if(beds[i].GetBedAvailability()){
+                  cout<<"Bed "<<beds[i].GetBedID()<<" ("<<beds[i].GetWardType()<<") is free"<<endl;
+                  free_count++;
+              }
+          }
+          cout<<"Free beds : "<<free_count<<" out of "<<beds.size()<<endl;
+       }
+       bool hospital::patientExists(int id){
+          for(size_t i=0;i<patients.size();i++){
+              if(patients[i].GetPatientID()==id) return true;
+          }
+          return false;
+       }
        void hospital::AddPatient(patient p){
           patients.push_back(p);
        }
