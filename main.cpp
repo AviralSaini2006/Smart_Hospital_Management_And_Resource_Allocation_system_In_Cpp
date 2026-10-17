@@ -27,7 +27,9 @@ int main(){
         cout<<"19) Show free beds"<<endl;
         cout<<"20) Save all data to file"<<endl;
         cout<<"21) Load all data from file"<<endl;
-        cout<<"22) Exit Program"<<endl;
+        cout<<"22) Transfer a patient to another bed"<<endl;
+        cout<<"23) Show ward-wise bed summary"<<endl;
+        cout<<"24) Exit Program"<<endl;
         cout<<"Answer : ";
         if(!(cin>>ch)){
             cin.clear();
@@ -172,7 +174,18 @@ int main(){
                 h.loadData();
                 break;
             }
-            case 22:
+            case 22:{
+                int pid,bid;
+                cout<<"Enter Patient ID : ";cin>>pid;
+                cout<<"Enter new Bed ID : ";cin>>bid;
+                h.transferBed(pid,bid);
+                break;
+            }
+            case 23:{
+                h.showWardSummary();
+                break;
+            }
+            case 24:
                 return 0;
             default:
                 cout<<"Invalid choice, try again."<<endl;

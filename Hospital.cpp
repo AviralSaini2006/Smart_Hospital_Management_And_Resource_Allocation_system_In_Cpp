@@ -350,3 +350,71 @@ void hospital::loadData(){
     cout<<"Data loaded: "<<patients.size()<<" patients, "<<doctors.size()<<" doctors, "
         <<beds.size()<<" beds."<<endl;
 }
+
+
+// ---------------- Bed management ----------------
+// moves an admitted patient from his/her current bed to another free bed
+void hospital::transferBed(int patient_id,int new_bed_id){
+    int old_index=-1,new_index=-1;
+    for(size_t b=0;b<beds.size();b++){
+        if(!beds[b].GetBedAvailability() && beds[b].GetPatientBedID()==patient_id) old_index=b;
+        if(beds[b].GetBedID()==new_bed_id) new_index=b;
+    }
+    if(old_index==-1){
+        cout<<"This patient does not have a bed right now."<<endl;
+        return;
+    }
+    if(new_index==-1){
+        cout<<"Bed ID not found."<<endl;
+        return;
+    }
+    if(new_index==old_index){
+        cout<<"The patient is already in this bed."<<endl;
+        return;
+    }
+    if(!beds[new_index].GetBedAvailability()){
+        cout<<"That bed is not free."<<endl;
+        return;
+    }
+    int sev=-1;
+    string name="";
+    for(size_t p=0;p<patients.size();p++){
+        if(patients[p].GetPatientID()==patient_id){
+            sev=patients[p].GetPatientSeverity();
+            name=patients[p].GetPatientName();
+        }
+    }
+    if(sev>=8 && beds[new_index].GetWardType()!="ICU"){
+        cout<<"Severe patients (severity 8 or more) must stay in an ICU bed."<<endl;
+        return;
+    }
+    beds[old_index].Release();
+    beds[new_index].AssignPatient(patient_id);
+    cout<<name<<" moved to Bed "<<beds[new_index].GetBedID()<<" ("<<beds[new_index].GetWardType()<<"). "
+        <<"Bed "<<beds[old_index].GetBedID()<<" is free again."<<endl;
+}
+
+// prints how many beds each ward has, and how many of them are free
+void hospital::showWardSummary(){
+    if(beds.empty()){
+        cout<<"No beds are registered."<<endl;
+        return;
+    }
+    vector<string> wards;
+    vector<int> total,free_beds;
+    for(size_t b=0;b<beds.size();b++){
+        size_t w=0;
+        while(w<wards.size() && wards[w]!=beds[b].GetWardType()) w++;
+        if(w==wards.size()){
+            wards.push_back(beds[b].GetWardType());
+            total.push_back(0);
+            free_beds.push_back(0);
+        }
+        total[w]++;
+        if(beds[b].GetBedAvailability()) free_beds[w]++;
+    }
+    for(size_t w=0;w<wards.size();w++){
+        cout<<wards[w]<<" : "<<total[w]<<" beds, "<<free_beds[w]<<" free, "
+            <<(total[w]-free_beds[w])<<" occupied"<<endl;
+    }
+}
