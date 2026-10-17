@@ -18,7 +18,7 @@ class hospital{
        vector<bed> beds;
        // (severity, -index in patients vector): highest severity first, earlier patient first on a tie
        priority_queue<pair<int,int> > waiting_queue;
-       appointmentbook book;   // all appointments (conflict checking lives inside it)
+
        vector<pair<int,int> > assignments;   // (patient_id, doctor_id) for patients currently under a doctor
     public:
        hospital(string h):HospitalName(h){}
@@ -38,18 +38,7 @@ class hospital{
        void assignDoctor();       // gives the most severe waiting patient an available doctor
        bool queuePatient(int patient_id,int severity,string diagnosis);   // set severity and push into priority queue
        void showQueue();
-       void showAdmitted();
 
-       bool doctorExists(int id);
-       void bookAppointment(int patient_id,int doctor_id,string date_time_text);
-       void cancelAppointment(int appointment_id);
-       void completeAppointment(int appointment_id);
-       void showAppointments();
-       void saveAppointments();
-       void loadAppointments();
-
-       void saveData();   // saves patients, doctors, beds and admissions to hospital_data.txt
-       void loadData();   // loads them back and rebuilds the priority queue   // patient - doctor - bed for everyone currently admitted
 }; 
 
 #endif
