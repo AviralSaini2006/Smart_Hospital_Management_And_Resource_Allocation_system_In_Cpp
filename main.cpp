@@ -18,14 +18,17 @@ int main(){
         cout<<"10) Allocate beds to admitted patients"<<endl;
         cout<<"11) Discharge a patient"<<endl;
         cout<<"12) Show admitted patients (doctor and bed)"<<endl;
-        cout<<"13) Exit Program"<<endl;
-        cout<<"Answer : ";cin>>ch;
+
         switch(ch){
             case 1:{
                int i,a;
                string n;
                char g;
                cout<<"Enter Patient ID : ";cin>>i;
+               if(h.patientExists(i)){
+                   cout<<"A patient with this ID already exists."<<endl;
+                   break;
+               }
                cout<<"Enter Patient Name : ";cin>>n;
                cout<<"Enter Patient Age : ";cin>>a;
                cout<<"Enter Patient Gender (M/F): ";cin>>g;
@@ -38,6 +41,10 @@ int main(){
                char g;
                bool av;
                cout<<"Enter Doctor ID : ";cin>>i;
+               if(h.doctorExists(i)){
+                   cout<<"A doctor with this ID already exists."<<endl;
+                   break;
+               }
                cout<<"Enter Doctor Name : ";cin>>n;
                cout<<"Enter Doctor Age : ";cin>>a;
                cout<<"Enter Doctor Gender (M/F): ";cin>>g;
@@ -52,6 +59,10 @@ int main(){
                 string w;
                 bool av;
                 cout<<"Enter Bed ID : ";cin>>i;
+                if(h.bedExists(i)){
+                    cout<<"A bed with this ID already exists."<<endl;
+                    break;
+                }
                cout<<"Enter Ward Type : ";cin>>w;
                cout<<"Enter Bed Availability : ";cin>>av;
                bed b(i,w,av,-1);
@@ -99,8 +110,10 @@ int main(){
                 h.showAdmitted();
                 break;
             }
-            case 13:
+
                 return 0;
+            default:
+                cout<<"Invalid choice, try again."<<endl;
 
         }
     }
