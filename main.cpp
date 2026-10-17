@@ -24,7 +24,10 @@ int main(){
         cout<<"16) Show all appointments"<<endl;
         cout<<"17) Save appointments to file"<<endl;
         cout<<"18) Load appointments from file"<<endl;
-        cout<<"19) Exit Program"<<endl;
+        cout<<"19) Show free beds"<<endl;
+        cout<<"20) Save all data to file"<<endl;
+        cout<<"21) Load all data from file"<<endl;
+        cout<<"22) Exit Program"<<endl;
         cout<<"Answer : ";
         if(!(cin>>ch)){
             cin.clear();
@@ -54,6 +57,10 @@ int main(){
                char g;
                bool av;
                cout<<"Enter Doctor ID : ";cin>>i;
+               if(h.doctorExists(i)){
+                   cout<<"A doctor with this ID already exists."<<endl;
+                   break;
+               }
                cout<<"Enter Doctor Name : ";cin>>n;
                cout<<"Enter Doctor Age : ";cin>>a;
                cout<<"Enter Doctor Gender (M/F): ";cin>>g;
@@ -68,6 +75,10 @@ int main(){
                 string w;
                 bool av;
                 cout<<"Enter Bed ID : ";cin>>i;
+                if(h.bedExists(i)){
+                    cout<<"A bed with this ID already exists."<<endl;
+                    break;
+                }
                cout<<"Enter Ward Type : ";cin>>w;
                cout<<"Enter Bed Availability : ";cin>>av;
                bed b(i,w,av,-1);
@@ -149,7 +160,19 @@ int main(){
                 h.loadAppointments();
                 break;
             }
-            case 19:
+            case 19:{
+                h.showFreeBeds();
+                break;
+            }
+            case 20:{
+                h.saveData();
+                break;
+            }
+            case 21:{
+                h.loadData();
+                break;
+            }
+            case 22:
                 return 0;
             default:
                 cout<<"Invalid choice, try again."<<endl;

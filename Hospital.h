@@ -22,6 +22,8 @@ class hospital{
        vector<pair<int,int> > assignments;   // (patient_id, doctor_id) for patients currently under a doctor
     public:
        hospital(string h):HospitalName(h){}
+       bool bedExists(int id);       // true if a bed with this ID is already registered
+       void showFreeBeds();          // lists only the free beds and a count per ward
        bool patientExists(int id);   // true if a patient with this ID is already registered
        void AddPatient(patient p);
        void AddDoctor(doctor d);
@@ -36,7 +38,7 @@ class hospital{
        void assignDoctor();       // gives the most severe waiting patient an available doctor
        bool queuePatient(int patient_id,int severity,string diagnosis);   // set severity and push into priority queue
        void showQueue();
-       void showAdmitted();   // patient - doctor - bed for everyone currently admitted
+       void showAdmitted();
 
        bool doctorExists(int id);
        void bookAppointment(int patient_id,int doctor_id,string date_time_text);
@@ -45,6 +47,11 @@ class hospital{
        void showAppointments();
        void saveAppointments();
        void loadAppointments();
+
+       void saveData();   // saves patients, doctors, beds and admissions to hospital_data.txt
+       void loadData();   // loads them back and rebuilds the priority queue   // patient - doctor - bed for everyone currently admitted
 }; 
 
 #endif
+
+
