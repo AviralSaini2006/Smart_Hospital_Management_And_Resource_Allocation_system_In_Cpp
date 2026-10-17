@@ -27,3 +27,13 @@ using namespace std;
         cout<<"Bed Availability : "<<(GetBedAvailability()?"Available":"Occupied")<<endl;
         cout<<"Patient using Bed ID : "<<GetPatientBedID()<<endl;
     }
+
+void bed::AssignPatient(int patient_id){
+    patient_bed_id=patient_id;
+    availability=false;
+}
+
+void bed::Release(){
+    patient_bed_id=-1;
+    availability=true;
+}
