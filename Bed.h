@@ -18,6 +18,8 @@ class bed{
     bool GetBedAvailability();
     int GetPatientBedID();
     void BedDisplay();
+    void AssignPatient(int patient_id);
+    void Release();
 };
 
 #endif
