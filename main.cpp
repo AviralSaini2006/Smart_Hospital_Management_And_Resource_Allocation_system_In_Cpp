@@ -18,20 +18,7 @@ int main(){
         cout<<"10) Allocate beds to admitted patients"<<endl;
         cout<<"11) Discharge a patient"<<endl;
         cout<<"12) Show admitted patients (doctor and bed)"<<endl;
-        cout<<"13) Book an appointment"<<endl;
-        cout<<"14) Cancel an appointment"<<endl;
-        cout<<"15) Complete an appointment"<<endl;
-        cout<<"16) Show all appointments"<<endl;
-        cout<<"17) Save appointments to file"<<endl;
-        cout<<"18) Load appointments from file"<<endl;
-        cout<<"19) Exit Program"<<endl;
-        cout<<"Answer : ";
-        if(!(cin>>ch)){
-            cin.clear();
-            cin.ignore(10000,'\n');
-            cout<<"Please enter a number from the menu."<<endl;
-            continue;
-        }
+
         switch(ch){
             case 1:{
                int i,a;
@@ -115,41 +102,7 @@ int main(){
                 h.showAdmitted();
                 break;
             }
-            case 13:{
-                int pid,did;
-                string date,time;
-                cout<<"Enter Patient ID : ";cin>>pid;
-                cout<<"Enter Doctor ID : ";cin>>did;
-                cout<<"Enter Date (DD-MM-YYYY) : ";cin>>date;
-                cout<<"Enter Time (HH:MM, 24-hour) : ";cin>>time;
-                h.bookAppointment(pid,did,date+" "+time);
-                break;
-            }
-            case 14:{
-                int id;
-                cout<<"Enter Appointment ID : ";cin>>id;
-                h.cancelAppointment(id);
-                break;
-            }
-            case 15:{
-                int id;
-                cout<<"Enter Appointment ID : ";cin>>id;
-                h.completeAppointment(id);
-                break;
-            }
-            case 16:{
-                h.showAppointments();
-                break;
-            }
-            case 17:{
-                h.saveAppointments();
-                break;
-            }
-            case 18:{
-                h.loadAppointments();
-                break;
-            }
-            case 19:
+
                 return 0;
             default:
                 cout<<"Invalid choice, try again."<<endl;
