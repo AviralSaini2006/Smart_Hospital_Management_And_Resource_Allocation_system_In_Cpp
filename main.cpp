@@ -1,196 +1,423 @@
 #include"Hospital.h"
 #include<iostream>
-using namespace std;
-int main(){
-    hospital h("MediAlloc");
-    int ch;
-    cout<<"Smart Hospital Management and Resource Allocation System"<<endl;
-    while(true){
-        cout<<"1) Register a Patient"<<endl;
-        cout<<"2) Register a Doctor"<<endl;
-        cout<<"3) Register a Bed"<<endl;
-        cout<<"4) Display all patients"<<endl;
-        cout<<"5) Display all doctors"<<endl;
-        cout<<"6) Display all beds"<<endl;
-        cout<<"7) Set severity and add patient to priority queue"<<endl;
-        cout<<"8) Show priority queue"<<endl;
-        cout<<"9) Assign doctor to most severe patient"<<endl;
-        cout<<"10) Allocate beds to admitted patients"<<endl;
-        cout<<"11) Discharge a patient"<<endl;
-        cout<<"12) Show admitted patients (doctor and bed)"<<endl;
-        cout<<"13) Book an appointment"<<endl;
-        cout<<"14) Cancel an appointment"<<endl;
-        cout<<"15) Complete an appointment"<<endl;
-        cout<<"16) Show all appointments"<<endl;
-        cout<<"17) Save appointments to file"<<endl;
-        cout<<"18) Load appointments from file"<<endl;
-        cout<<"19) Show free beds"<<endl;
-        cout<<"20) Save all data to file"<<endl;
-        cout<<"21) Load all data from file"<<endl;
-        cout<<"22) Transfer a patient to another bed"<<endl;
-        cout<<"23) Show ward-wise bed summary"<<endl;
-        cout<<"24) Exit Program"<<endl;
-        cout<<"Answer : ";
-        if(!(cin>>ch)){
+void patientMenu(hospital &h) {
+    int choice;
+
+    do {
+        cout << "\n===== PATIENT SERVICES =====\n";
+        cout << "1. Register Patient\n";
+        cout << "2. Process Next Patient\n";
+        cout << "3. Discharge Patient\n";
+        cout << "4. Transfer Patient Bed\n";
+        cout << "5. Show All Patients\n";
+        cout << "6. Show Admitted Patients\n";
+        cout << "7. Show Waiting Queue\n";
+        cout << "0. Back\n";
+        cout << "Enter choice: ";
+
+        if (!(cin >> choice)) {
             cin.clear();
-            cin.ignore(10000,'\n');
-            cout<<"Please enter a number from the menu."<<endl;
+            cin.ignore(10000, '\n');
+            cout << "Invalid input.\n";
             continue;
         }
-        switch(ch){
-            case 1:{
-               int i,a;
-               string n;
-               char g;
-               cout<<"Enter Patient ID : ";cin>>i;
-               if(h.patientExists(i)){
-                   cout<<"A patient with this ID already exists."<<endl;
-                   break;
-               }
-               cout<<"Enter Patient Name : ";cin>>n;
-               cout<<"Enter Patient Age : ";cin>>a;
-               cout<<"Enter Patient Gender (M/F): ";cin>>g;
-               patient p(i,n,a,g,"NULL",-1,false);
-               h.AddPatient(p);
-               break;}
-            case 2:{
-               int i,a;
-               string n,s;
-               char g;
-               bool av;
-               cout<<"Enter Doctor ID : ";cin>>i;
-               if(h.doctorExists(i)){
-                   cout<<"A doctor with this ID already exists."<<endl;
-                   break;
-               }
-               cout<<"Enter Doctor Name : ";cin>>n;
-               cout<<"Enter Doctor Age : ";cin>>a;
-               cout<<"Enter Doctor Gender (M/F): ";cin>>g;
-               cout<<"Enter Doctor Availability : ";cin>>av;
-               cout<<"Enter Doctor Specialisation : ";cin>>s;
-               doctor d(i,n,a,g,av,s);
-               h.AddDoctor(d);
-               break;
+
+        switch (choice) {
+            case 1: {
+                int id, age;
+                string name;
+                char gender;
+
+                cout << "Patient ID: ";
+                cin >> id;
+
+                cout << "Name: ";
+                cin >> ws;
+                getline(cin, name);
+
+                cout << "Age: ";
+                cin >> age;
+
+                cout << "Gender: ";
+                cin >> gender;
+
+                patient p(id, name, age, gender,"NULL", -1, false);
+                h.registerPatient(p);
+                break;
             }
-            case 3:{
-                int i;
-                string w;
-                bool av;
-                cout<<"Enter Bed ID : ";cin>>i;
-                if(h.bedExists(i)){
-                    cout<<"A bed with this ID already exists."<<endl;
-                    break;
+
+            case 2: {
+                int id, severity;
+                string diagnosis;
+
+                cout << "Patient ID to process: ";
+                cin >> id;
+
+                cout << "Severity (1-10): ";
+                cin >> severity;
+
+                cout << "Diagnosis: ";
+                cin >> ws;
+                getline(cin, diagnosis);
+
+                if (h.admitPatient(id, severity, diagnosis)) {
+                    cout << "Patient processed.\n";
                 }
-               cout<<"Enter Ward Type : ";cin>>w;
-               cout<<"Enter Bed Availability : ";cin>>av;
-               bed b(i,w,av,-1);
-               h.AddBed(b);
-               break;
+                break;
             }
-            case 4:{
+
+            case 3: {
+                int id;
+
+                cout << "Patient ID to discharge: ";
+                cin >> id;
+
+                h.dischargePatientById(id);
+                break;
+            }
+
+            case 4: {
+                int patientId, bedId;
+
+                cout << "Patient ID: ";
+                cin >> patientId;
+
+                cout << "New bed ID: ";
+                cin >> bedId;
+
+                h.transferBed(patientId, bedId);
+                break;
+            }
+
+            case 5:
                 h.showPatients();
                 break;
-            }
-            case 5:{
-                h.showDoctors();
-                break;
-            }
-            case 6:{
-                h.showBeds();
-                break;
-            }
-            case 7:{
-                int i,sev;
-                string d;
-                cout<<"Enter Patient ID : ";cin>>i;
-                cout<<"Enter Severity (1-10) : ";cin>>sev;
-                cout<<"Enter Diagnosis : ";cin>>d;
-                h.queuePatient(i,sev,d);
-                break;
-            }
-            case 8:{
-                h.showQueue();
-                break;
-            }
-            case 9:{
-                h.assignDoctor();
-                break;
-            }
-            case 10:{
-                h.allocateBed();
-                break;
-            }
-            case 11:{
-                h.dischargePatient();
-                break;
-            }
-            case 12:{
+
+            case 6:
                 h.showAdmitted();
                 break;
-            }
-            case 13:{
-                int pid,did;
-                string date,time;
-                cout<<"Enter Patient ID : ";cin>>pid;
-                cout<<"Enter Doctor ID : ";cin>>did;
-                cout<<"Enter Date (DD-MM-YYYY) : ";cin>>date;
-                cout<<"Enter Time (HH:MM, 24-hour) : ";cin>>time;
-                h.bookAppointment(pid,did,date+" "+time);
+
+            case 7:
+                h.showQueue();
+                break;
+
+            case 0:
+                break;
+
+            default:
+                cout << "Invalid choice.\n";
+        }
+
+    } while (choice != 0);
+}
+void hospitalSetupMenu(hospital &h) {
+    int choice;
+
+    do {
+        cout << "\n===== HOSPITAL SETUP =====\n";
+        cout << "1. Register Doctor\n";
+        cout << "2. Register Bed\n";
+        cout << "3. Show Doctors\n";
+        cout << "4. Show All Beds\n";
+        cout << "5. Show Free Beds\n";
+        cout << "0. Back\n";
+        cout << "Enter choice: ";
+
+        if (!(cin >> choice)) {
+            cin.clear();
+            cin.ignore(10000, '\n');
+            cout << "Invalid input.\n";
+            continue;
+        }
+
+        switch (choice) {
+            case 1: {
+                int id, age;
+                string name, specialization;
+                char gender;
+
+                cout << "Doctor ID: ";
+                cin >> id;
+
+                cout << "Name: ";
+                cin >> ws;
+                getline(cin, name);
+
+                cout << "Age: ";
+                cin >> age;
+
+                cout << "Gender: ";
+                cin >> gender;
+
+                cout << "Specialization: ";
+                cin >> ws;
+                getline(cin, specialization);
+
+                doctor d(id, name, age, gender,true, specialization);
+
+                h.registerDoctor(d);
                 break;
             }
-            case 14:{
+
+            case 2: {
                 int id;
-                cout<<"Enter Appointment ID : ";cin>>id;
+                string ward;
+
+                cout << "Bed ID: ";
+                cin >> id;
+
+                cout << "Ward type (ICU/General): ";
+                cin >> ward;
+
+                bed b(id, ward, true, -1);
+                h.registerBed(b);
+                break;
+            }
+
+            case 3:
+                h.showDoctors();
+                break;
+
+            case 4:
+                h.showBeds();
+                break;
+
+            case 5:
+                h.showFreeBeds();
+                break;
+
+            case 0:
+                break;
+
+            default:
+                cout << "Invalid choice.\n";
+        }
+
+    } while (choice != 0);
+}
+void appointmentMenu(hospital &h) {
+    int choice;
+
+    do {
+        cout << "\n===== APPOINTMENTS =====\n";
+        cout << "1. Book Appointment\n";
+        cout << "2. Cancel Appointment\n";
+        cout << "3. Complete Appointment\n";
+        cout << "4. Show Appointments\n";
+        cout << "0. Back\n";
+        cout << "Enter choice: ";
+
+        if (!(cin >> choice)) {
+            cin.clear();
+            cin.ignore(10000, '\n');
+            cout << "Invalid input.\n";
+            continue;
+        }
+
+        switch (choice) {
+            case 1: {
+                int patientId, doctorId;
+                string dateTime;
+
+                cout << "Patient ID: ";
+                cin >> patientId;
+
+                cout << "Doctor ID: ";
+                cin >> doctorId;
+
+                cout << "Date and time: ";
+                cin >> ws;
+                getline(cin, dateTime);
+
+                h.bookAppointment(patientId, doctorId, dateTime);
+                break;
+            }
+
+            case 2: {
+                int id;
+
+                cout << "Appointment ID to cancel: ";
+                cin >> id;
+
                 h.cancelAppointment(id);
                 break;
             }
-            case 15:{
+
+            case 3: {
                 int id;
-                cout<<"Enter Appointment ID : ";cin>>id;
+
+                cout << "Appointment ID to complete: ";
+                cin >> id;
+
                 h.completeAppointment(id);
                 break;
             }
-            case 16:{
+
+            case 4:
                 h.showAppointments();
                 break;
-            }
-            case 17:{
-                h.saveAppointments();
+
+            case 0:
                 break;
-            }
-            case 18:{
-                h.loadAppointments();
+
+            default:
+                cout << "Invalid choice.\n";
+        }
+
+    } while (choice != 0);
+}
+void reportsMenu(hospital &h) {
+    int choice;
+
+    do {
+        cout << "\n===== REPORTS =====\n";
+        cout << "1. Patient List\n";
+        cout << "2. Doctor List\n";
+        cout << "3. Bed Status\n";
+        cout << "4. Waiting Queue\n";
+        cout << "5. Admitted Patients\n";
+        cout << "6. Ward Summary\n";
+        cout << "0. Back\n";
+        cout << "Enter choice: ";
+
+        if (!(cin >> choice)) {
+            cin.clear();
+            cin.ignore(10000, '\n');
+            cout << "Invalid input.\n";
+            continue;
+        }
+
+        switch (choice) {
+            case 1:
+                h.showPatients();
                 break;
-            }
-            case 19:{
-                h.showFreeBeds();
+
+            case 2:
+                h.showDoctors();
                 break;
-            }
-            case 20:{
-                h.saveData();
+
+            case 3:
+                h.showBeds();
                 break;
-            }
-            case 21:{
-                h.loadData();
+
+            case 4:
+                h.showQueue();
                 break;
-            }
-            case 22:{
-                int pid,bid;
-                cout<<"Enter Patient ID : ";cin>>pid;
-                cout<<"Enter new Bed ID : ";cin>>bid;
-                h.transferBed(pid,bid);
+
+            case 5:
+                h.showAdmitted();
                 break;
-            }
-            case 23:{
+
+            case 6:
                 h.showWardSummary();
                 break;
-            }
-            case 24:
-                return 0;
-            default:
-                cout<<"Invalid choice, try again."<<endl;
 
+            case 0:
+                break;
+
+            default:
+                cout << "Invalid choice.\n";
         }
-    }
+
+    } while (choice != 0);
+}
+void dataMenu(hospital &h) {
+    int choice;
+
+    do {
+        cout << "\n===== DATA MANAGEMENT =====\n";
+        cout << "1. Save All Hospital Data\n";
+        cout << "2. Load All Hospital Data\n";
+        cout << "3. Save Appointments\n";
+        cout << "4. Load Appointments\n";
+        cout << "0. Back\n";
+        cout << "Enter choice: ";
+
+        if (!(cin >> choice)) {
+            cin.clear();
+            cin.ignore(10000, '\n');
+            cout << "Invalid input.\n";
+            continue;
+        }
+
+        switch (choice) {
+            case 1:
+                h.saveData();
+                break;
+
+            case 2:
+                h.loadData();
+                break;
+
+            case 3:
+                h.saveAppointments();
+                break;
+
+            case 4:
+                h.loadAppointments();
+                break;
+
+            case 0:
+                break;
+
+            default:
+                cout << "Invalid choice.\n";
+        }
+
+    } while (choice != 0);
+}
+using namespace std;
+int main() {
+    hospital h("MediAlloc");
+    int choice;
+
+    do {
+        cout << "\n========== MediAlloc ==========\n";
+        cout << "1. Patient Services\n";
+        cout << "2. Hospital Setup\n";
+        cout << "3. Appointments\n";
+        cout << "4. Reports\n";
+        cout << "5. Save / Load Data\n";
+        cout << "0. Exit\n";
+        cout << "Enter choice: ";
+
+        if (!(cin >> choice)) {
+            cin.clear();
+            cin.ignore(10000, '\n');
+            cout << "Invalid input. Enter a number.\n";
+            continue;
+        }
+
+        switch (choice) {
+            case 1:
+                patientMenu(h);
+                break;
+
+            case 2:
+                hospitalSetupMenu(h);
+                break;
+
+            case 3:
+                appointmentMenu(h);
+                break;
+
+            case 4:
+                reportsMenu(h);
+                break;
+
+            case 5:
+                dataMenu(h);
+                break;
+
+            case 0:
+                cout << "Exiting MediAlloc. Goodbye!\n";
+                break;
+
+            default:
+                cout << "Invalid choice. Try again.\n";
+        }
+
+    } while (choice != 0);
+
     return 0;
 }

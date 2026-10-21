@@ -52,7 +52,18 @@ class hospital{
        void loadData();   // loads them back and rebuilds the priority queue
 
        void transferBed(int patient_id,int new_bed_id);   // moves an admitted patient to another free bed
-       void showWardSummary();                            // total / free / occupied beds for each ward   // patient - doctor - bed for everyone currently admitted
+       void showWardSummary();        
+       // Centralized registration
+bool registerPatient(patient p);
+bool registerDoctor(doctor d);
+bool registerBed(bed b);
+
+// Automated workflows
+bool processNextPatient();
+bool admitPatient(int patient_id, int severity,
+                  string diagnosis);
+bool dischargePatientById(int patient_id);     
+void processWaitingQueue();               // total / free / occupied beds for each ward   // patient - doctor - bed for everyone currently admitted
 }; 
 
 #endif

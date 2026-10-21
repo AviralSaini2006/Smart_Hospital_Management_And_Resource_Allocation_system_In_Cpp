@@ -24,15 +24,48 @@ using namespace std;
           }
           return false;
        }
-       void hospital::AddPatient(patient p){
-          patients.push_back(p);
-       }
-       void hospital::AddDoctor(doctor d){
-          doctors.push_back(d);
-       }
-       void hospital::AddBed(bed b){
-          beds.push_back(b);
-       }
+       void hospital::AddPatient(patient p) {
+    patients.push_back(p);
+}
+
+void hospital::AddDoctor(doctor d) {
+    doctors.push_back(d);
+}
+
+void hospital::AddBed(bed b) {
+    beds.push_back(b);
+}
+      bool hospital::registerPatient(patient p) {
+    if (patientExists(p.GetPatientID())) {
+        cout << "Error: Patient ID already exists.\n";
+        return false;
+    }
+
+    AddPatient(p);
+    return true;
+}
+
+bool hospital::registerDoctor(doctor d) {
+    if (doctorExists(d.GetDocID())) {
+        cout << "Error: Doctor ID already exists.\n";
+        return false;
+    }
+
+    AddDoctor(d);
+    processWaitingQueue();
+    return true;
+}
+
+bool hospital::registerBed(bed b) {
+    if (bedExists(b.GetBedID())) {
+        cout << "Error: Bed ID already exists.\n";
+        return false;
+    }
+
+    AddBed(b);
+    processWaitingQueue();
+    return true;
+}
 
        void hospital::showPatients(){
            for(patient p : patients){
@@ -416,5 +449,147 @@ void hospital::showWardSummary(){
     for(size_t w=0;w<wards.size();w++){
         cout<<wards[w]<<" : "<<total[w]<<" beds, "<<free_beds[w]<<" free, "
             <<(total[w]-free_beds[w])<<" occupied"<<endl;
+    }
+}
+bool hospital::processNextPatient() {
+    if (waiting_queue.empty()) {
+        cout << "No patients are waiting.\n";
+        return false;
+    }
+
+    // Highest severity first; earlier patient wins a tie.
+    pair<int, int> top = waiting_queue.top();
+    int patientIndex = -top.second;
+
+    if (patientIndex < 0 ||
+        patientIndex >= static_cast<int>(patients.size())) {
+        cout << "Invalid patient queue entry.\n";
+        return false;
+    }
+
+    patient &p = patients[patientIndex];
+
+    // Find a suitable free bed before changing any assignments.
+    int bedIndex = -1;
+
+    for (size_t i = 0; i < beds.size(); i++) {
+        if (!beds[i].GetBedAvailability())
+            continue;
+
+        if (p.GetPatientSeverity() >= 8) {
+            if (beds[i].GetWardType() == "ICU") {
+                bedIndex = static_cast<int>(i);
+                break;
+            }
+        } else {
+            bedIndex = static_cast<int>(i);
+            break;
+        }
+    }
+
+    if (bedIndex == -1) {
+        if (p.GetPatientSeverity() >= 8)
+            cout << "No free ICU bed. Patient remains in queue.\n";
+        else
+            cout << "No suitable free bed. Patient remains in queue.\n";
+
+        return false;
+    }
+
+    // Find an available doctor.
+    int doctorIndex = -1;
+
+    for (size_t i = 0; i < doctors.size(); i++) {
+        if (doctors[i].GetDocAvailability()) {
+            doctorIndex = static_cast<int>(i);
+            break;
+        }
+    }
+
+    if (doctorIndex == -1) {
+        cout << "No doctor available. Patient remains in queue.\n";
+        return false;
+    }
+
+    // Commit assignments only after both resources are available.
+    doctor &d = doctors[doctorIndex];
+    bed &b = beds[bedIndex];
+
+    waiting_queue.pop();
+
+    d.SetDocAvailability(false);
+    b.AssignPatient(p.GetPatientID());
+
+    assignments.push_back(
+        make_pair(p.GetPatientID(), d.GetDocID())
+    );
+
+    cout << "\nPatient admitted successfully.\n";
+    cout << "Patient: " << p.GetPatientName() << '\n';
+    cout << "Doctor: " << d.GetDocName() << '\n';
+    cout << "Bed ID: " << b.GetBedID() << '\n';
+    cout << "Ward: " << b.GetWardType() << '\n';
+
+    return true;
+}
+bool hospital::admitPatient(int patient_id, int severity, string diagnosis) {
+    if (!queuePatient(patient_id, severity, diagnosis)) {
+        return false;
+    }
+
+    processWaitingQueue();
+    return true;
+}
+bool hospital::dischargePatientById(int patient_id) {
+    int doctor_id = -1;
+    bool found = false;
+
+    for (const auto &a : assignments) {
+        if (a.first == patient_id) {
+            doctor_id = a.second;
+            found = true;
+            break;
+        }
+    }
+
+    if (!found) {
+        cout << "Patient is not currently admitted.\n";
+        return false;
+    }
+
+    // Release the patient's bed.
+    for (auto &b : beds) {
+        if (b.GetPatientBedID() == patient_id) {
+            b.Release();
+            break;
+        }
+    }
+
+    // Make the assigned doctor available again.
+    for (auto &d : doctors) {
+        if (d.GetDocID() == doctor_id) {
+            d.SetDocAvailability(true);
+            break;
+        }
+    }
+
+    // Remove the assignment.
+    for (auto it = assignments.begin();
+         it != assignments.end(); ++it) {
+        if (it->first == patient_id) {
+            assignments.erase(it);
+            break;
+        }
+    }
+
+    cout << "Patient discharged successfully.\n";
+    processWaitingQueue();
+    return true;
+}
+void hospital::processWaitingQueue() {
+    while (!waiting_queue.empty()) {
+        if (!processNextPatient()) {
+            break;
+        }
     }
 }
