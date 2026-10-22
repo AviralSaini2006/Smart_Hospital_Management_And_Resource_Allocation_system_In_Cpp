@@ -1,9 +1,21 @@
 #include"Hospital.h"
 #include<iostream>
+#include <cstdlib>
+using namespace std;
+
+void clearScreen()
+{
+#ifdef _WIN32
+    system("cls");
+#else
+    system("clear");
+#endif
+}
 void patientMenu(hospital &h) {
     int choice;
 
     do {
+        clearScreen();
         cout << "\n===== PATIENT SERVICES =====\n";
         cout << "1. Register Patient\n";
         cout << "2. Process Next Patient\n";
@@ -12,6 +24,7 @@ void patientMenu(hospital &h) {
         cout << "5. Show All Patients\n";
         cout << "6. Show Admitted Patients\n";
         cout << "7. Show Waiting Queue\n";
+        cout << "8. Complete Doctor Assessment\n";
         cout << "0. Back\n";
         cout << "Enter choice: ";
 
@@ -47,24 +60,17 @@ void patientMenu(hospital &h) {
             }
 
             case 2: {
-                int id, severity;
-                string diagnosis;
+    int id, severity;
 
-                cout << "Patient ID to process: ";
-                cin >> id;
+    cout << "Patient ID for triage: ";
+    cin >> id;
 
-                cout << "Severity (1-10): ";
-                cin >> severity;
+    cout << "Severity (1-10): ";
+    cin >> severity;
 
-                cout << "Diagnosis: ";
-                cin >> ws;
-                getline(cin, diagnosis);
-
-                if (h.admitPatient(id, severity, diagnosis)) {
-                    cout << "Patient processed.\n";
-                }
-                break;
-            }
+    h.initialTriage(id, severity);
+    break;
+}
 
             case 3: {
                 int id;
@@ -73,6 +79,7 @@ void patientMenu(hospital &h) {
                 cin >> id;
 
                 h.dischargePatientById(id);
+                h.processDoctorWaitingQueue();
                 break;
             }
 
@@ -100,6 +107,20 @@ void patientMenu(hospital &h) {
             case 7:
                 h.showQueue();
                 break;
+            case 8: {
+    int id;
+    string diagnosis;
+
+    cout << "Patient ID for assessment: ";
+    cin >> id;
+
+    cout << "Diagnosis: ";
+    cin >> ws;
+    getline(cin, diagnosis);
+
+    h.completeAssessment(id, diagnosis);
+    break;
+}
 
             case 0:
                 break;
@@ -114,6 +135,7 @@ void hospitalSetupMenu(hospital &h) {
     int choice;
 
     do {
+        clearScreen();
         cout << "\n===== HOSPITAL SETUP =====\n";
         cout << "1. Register Doctor\n";
         cout << "2. Register Bed\n";
@@ -156,6 +178,7 @@ void hospitalSetupMenu(hospital &h) {
                 doctor d(id, name, age, gender,true, specialization);
 
                 h.registerDoctor(d);
+                h.processDoctorWaitingQueue();
                 break;
             }
 
@@ -199,6 +222,7 @@ void appointmentMenu(hospital &h) {
     int choice;
 
     do {
+        clearScreen();
         cout << "\n===== APPOINTMENTS =====\n";
         cout << "1. Book Appointment\n";
         cout << "2. Cancel Appointment\n";
@@ -270,6 +294,7 @@ void reportsMenu(hospital &h) {
     int choice;
 
     do {
+        clearScreen();
         cout << "\n===== REPORTS =====\n";
         cout << "1. Patient List\n";
         cout << "2. Doctor List\n";
@@ -325,6 +350,7 @@ void dataMenu(hospital &h) {
     int choice;
 
     do {
+        clearScreen();
         cout << "\n===== DATA MANAGEMENT =====\n";
         cout << "1. Save All Hospital Data\n";
         cout << "2. Load All Hospital Data\n";
@@ -372,6 +398,7 @@ int main() {
     int choice;
 
     do {
+        clearScreen();
         cout << "\n========== MediAlloc ==========\n";
         cout << "1. Patient Services\n";
         cout << "2. Hospital Setup\n";

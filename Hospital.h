@@ -18,6 +18,7 @@ class hospital{
        vector<bed> beds;
        // (severity, -index in patients vector): highest severity first, earlier patient first on a tie
        priority_queue<pair<int,int> > waiting_queue;
+       priority_queue<pair<int, int>> doctorWaitingQueue;
        appointmentbook book;   // all appointments (conflict checking lives inside it)
        vector<pair<int,int> > assignments;   // (patient_id, doctor_id) for patients currently under a doctor
     public:
@@ -63,7 +64,11 @@ bool processNextPatient();
 bool admitPatient(int patient_id, int severity,
                   string diagnosis);
 bool dischargePatientById(int patient_id);     
-void processWaitingQueue();               // total / free / occupied beds for each ward   // patient - doctor - bed for everyone currently admitted
+void processWaitingQueue();     
+bool assessPatient(int patient_id, int severity, string diagnosis);     
+bool initialTriage(int patient_id, int severity);
+bool completeAssessment(int patient_id, string diagnosis); 
+void processDoctorWaitingQueue();   // total / free / occupied beds for each ward   // patient - doctor - bed for everyone currently admitted
 }; 
 
 #endif
