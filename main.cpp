@@ -15,7 +15,6 @@ void patientMenu(hospital &h) {
     int choice;
 
     do {
-        clearScreen();
         cout << "\n===== PATIENT SERVICES =====\n";
         cout << "1. Register Patient\n";
         cout << "2. Process Next Patient\n";
@@ -135,7 +134,6 @@ void hospitalSetupMenu(hospital &h) {
     int choice;
 
     do {
-        clearScreen();
         cout << "\n===== HOSPITAL SETUP =====\n";
         cout << "1. Register Doctor\n";
         cout << "2. Register Bed\n";
@@ -222,7 +220,6 @@ void appointmentMenu(hospital &h) {
     int choice;
 
     do {
-        clearScreen();
         cout << "\n===== APPOINTMENTS =====\n";
         cout << "1. Book Appointment\n";
         cout << "2. Cancel Appointment\n";
@@ -294,7 +291,6 @@ void reportsMenu(hospital &h) {
     int choice;
 
     do {
-        clearScreen();
         cout << "\n===== REPORTS =====\n";
         cout << "1. Patient List\n";
         cout << "2. Doctor List\n";
@@ -350,7 +346,6 @@ void dataMenu(hospital &h) {
     int choice;
 
     do {
-        clearScreen();
         cout << "\n===== DATA MANAGEMENT =====\n";
         cout << "1. Save All Hospital Data\n";
         cout << "2. Load All Hospital Data\n";
@@ -398,7 +393,6 @@ int main() {
     int choice;
 
     do {
-        clearScreen();
         cout << "\n========== MediAlloc ==========\n";
         cout << "1. Patient Services\n";
         cout << "2. Hospital Setup\n";
