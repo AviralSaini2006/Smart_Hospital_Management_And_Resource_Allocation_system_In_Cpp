@@ -1,7 +1,7 @@
 #include "Patient.h"
 #include<iostream>
 using namespace std;
-       patient::patient(int patient_id,string patient_name,int patient_age,char patient_gender,string diagnosis="NULL",int severity=-1,bool emergency_status=false){
+       patient::patient(int patient_id,string patient_name,int patient_age,char patient_gender,string diagnosis,int severity,bool emergency_status,string required_specialisation){
         this->patient_id=patient_id;
         this->patient_age=patient_age;
         this->patient_name=patient_name;
@@ -9,6 +9,7 @@ using namespace std;
         this->diagnosis=diagnosis;
         this->severity=severity;
         this->emergency_status=emergency_status;
+        this->required_specialisation=required_specialisation;
        }
     int patient::GetPatientID(){
         return patient_id;
@@ -30,7 +31,10 @@ using namespace std;
     }
     bool patient::GetPatientEmergencyStatus(){
         return emergency_status;
-    }  
+    }
+    string patient::GetRequiredSpecialisation(){
+        return required_specialisation;
+    }
     void patient::PatientDisplay(){
         cout<<"Patient ID : "<<GetPatientID()<<endl;
         cout<<"Patient Name : "<<GetPatientName()<<endl;
@@ -39,6 +43,7 @@ using namespace std;
         cout<<"Patient Diagnosis : "<<GetPatientDiagnosis()<<endl;
         cout<<"Patient Severity : "<<GetPatientSeverity()<<endl;
         cout<<"Patient Emergency Status : "<<(GetPatientEmergencyStatus()?"YES":"NO")<<endl;
+        cout<<"Required Specialisation : "<<GetRequiredSpecialisation()<<endl;
     }
     void patient::setSeverity(int s){
         severity=s;
