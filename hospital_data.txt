@@ -1,0 +1,4 @@
+P 101 aviral 20 M Heart pain 9 1
+D 201 saini 20 M 0 cardiologist
+B 301 ICU 0 101
+A 101 201
