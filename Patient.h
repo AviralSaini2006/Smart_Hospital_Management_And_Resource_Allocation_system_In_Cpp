@@ -13,9 +13,8 @@ class patient{
        char patient_gender;
        int severity;
        bool emergency_status;
-       string required_specialisation;   // doctor specialisation this patient needs ("NULL" = any)
     public:
-       patient(int id,string name,int age,char gender,string diagnosis,int sev,bool emergency_status,string required_specialisation);
+       patient(int id,string name,int age,char gender,string diagnosis,int sev,bool emergency_status);
     int GetPatientID();
     int GetPatientAge();
     string GetPatientName();
@@ -23,7 +22,6 @@ class patient{
     string GetPatientDiagnosis();
     int GetPatientSeverity();
     bool GetPatientEmergencyStatus();
-    string GetRequiredSpecialisation();
     void PatientDisplay();
     void setSeverity(int s);
     void setDiagnosis(string d);
