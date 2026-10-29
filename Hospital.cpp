@@ -298,7 +298,7 @@ void hospital::loadAppointments(){
 
 // ---------------- File handling (save / load) ----------------
 // One line per record:
-//   P id name age gender diagnosis severity emergency
+//   P id name age gender diagnosis severity emergency required_specialisation
 //   D id name age gender availability specialisation
 //   B id ward availability patient_id
 //   A patient_id doctor_id
@@ -314,7 +314,7 @@ void hospital::saveData(){
         out<<"P "<<patients[i].GetPatientID()<<" "<<patients[i].GetPatientName()<<" "
            <<patients[i].GetPatientAge()<<" "<<patients[i].GetPatientGender()<<" "
            <<patients[i].GetPatientDiagnosis()<<" "<<patients[i].GetPatientSeverity()<<" "
-           <<patients[i].GetPatientEmergencyStatus()<<"\n";
+           <<patients[i].GetPatientEmergencyStatus()<<" "<<patients[i].GetRequiredSpecialisation()<<"\n";
     }
     for(size_t i=0;i<doctors.size();i++){
         out<<"D "<<doctors[i].GetDocID()<<" "<<doctors[i].GetDocName()<<" "
@@ -350,8 +350,9 @@ void hospital::loadData(){
             bool em;
             string name,diag;
             char g;
-            in>>id>>name>>age>>g>>diag>>sev>>em;
-            patients.push_back(patient(id,name,age,g,diag,sev,em));
+            string req;
+            in>>id>>name>>age>>g>>diag>>sev>>em>>req;
+            patients.push_back(patient(id,name,age,g,diag,sev,em,req));
         }
         else if(type=='D'){
             int id,age;
@@ -721,43 +722,53 @@ bool hospital::completeAssessment(int patient_id, string diagnosis)
 }
 void hospital::processDoctorWaitingQueue()
 {
+    bool anyFree = false;
+    for (size_t i = 0; i < doctors.size(); i++) {
+        if (doctors[i].GetDocAvailability()) { anyFree = true; break; }
+    }
+    if (!anyFree) {
+        cout << "No doctor available. Patients remain "
+             << "in the doctor waiting queue.\n";
+        return;
+    }
+
+    // Go from most severe to least severe. A patient gets a free doctor only if
+    // that doctor's specialisation matches the patient's required specialisation.
+    // Patients who cannot be matched now stay in the queue for later.
+    vector<pair<int,int> > skipped;
+
     while (!doctorWaitingQueue.empty()) {
-        int doctorIndex = -1;
-
-        for (size_t i = 0; i < doctors.size(); i++) {
-            if (doctors[i].GetDocAvailability()) {
-                doctorIndex = static_cast<int>(i);
-                break;
-            }
-        }
-
-        if (doctorIndex == -1) {
-            cout << "No doctor available. Patients remain "
-                 << "in the doctor waiting queue.\n";
-            return;
-        }
-
         auto top = doctorWaitingQueue.top();
-        int patientIndex = -top.second;
         doctorWaitingQueue.pop();
 
-        if (patientIndex < 0 ||
-            patientIndex >= static_cast<int>(patients.size())) {
+        int patientIndex = -top.second;
+        if (patientIndex < 0 || patientIndex >= static_cast<int>(patients.size())) {
             continue;
         }
 
         patient &p = patients[patientIndex];
 
         bool alreadyAssigned = false;
-
         for (const auto &a : assignments) {
-            if (a.first == p.GetPatientID()) {
-                alreadyAssigned = true;
-                break;
-            }
+            if (a.first == p.GetPatientID()) { alreadyAssigned = true; break; }
+        }
+        if (alreadyAssigned) continue;
+
+        string need = p.GetRequiredSpecialisation();
+        bool anyDoctor = (need == "NULL" || need.empty());
+
+        int doctorIndex = -1;
+        for (size_t i = 0; i < doctors.size(); i++) {
+            if (!doctors[i].GetDocAvailability()) continue;
+            if (!anyDoctor && doctors[i].GetDocSpecialisation() != need) continue;
+            doctorIndex = static_cast<int>(i);
+            break;
         }
 
-        if (alreadyAssigned) {
+        if (doctorIndex == -1) {
+            cout << "No free " << need << " doctor for " << p.GetPatientName()
+                 << " right now. Patient stays in the queue.\n";
+            skipped.push_back(top);
             continue;
         }
 
@@ -770,6 +781,11 @@ void hospital::processDoctorWaitingQueue()
 
         cout << "\nDoctor assigned successfully.\n";
         cout << "Patient: " << p.GetPatientName() << '\n';
-        cout << "Doctor: Dr. " << d.GetDocName() << '\n';
+        cout << "Doctor: Dr. " << d.GetDocName()
+             << " (" << d.GetDocSpecialisation() << ")\n";
+    }
+
+    for (size_t k = 0; k < skipped.size(); k++) {
+        doctorWaitingQueue.push(skipped[k]);
     }
 }
