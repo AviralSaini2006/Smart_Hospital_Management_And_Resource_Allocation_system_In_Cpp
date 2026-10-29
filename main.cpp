@@ -53,7 +53,10 @@ void patientMenu(hospital &h) {
                 cout << "Gender: ";
                 cin >> gender;
 
-                patient p(id, name, age, gender,"NULL", -1, false);
+                cout << "Required Doctor Specialisation (or NULL for any): ";
+                string req;
+                cin >> req;
+                patient p(id, name, age, gender, "NULL", -1, false, req);
                 h.registerPatient(p);
                 break;
             }
@@ -430,7 +433,7 @@ int main() {
                 dataMenu(h);
                 break;
 
-            case 0:
+case 0:
                 cout << "Exiting MediAlloc. Goodbye!\n";
                 break;
 
