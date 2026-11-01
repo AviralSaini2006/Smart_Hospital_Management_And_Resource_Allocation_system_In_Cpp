@@ -67,7 +67,7 @@ bool dischargePatientById(int patient_id);
 void processWaitingQueue();     
 bool assessPatient(int patient_id, int severity, string diagnosis);     
 bool initialTriage(int patient_id, int severity);
-bool completeAssessment(int patient_id, string diagnosis); 
+bool completeAssessment(int patient_id,string diagnosis,int systolicBP,int diastolicBP,int heartRate,int spo2,int respiratoryRate,double temperature);
 void processDoctorWaitingQueue();   // total / free / occupied beds for each ward   // patient - doctor - bed for everyone currently admitted
 }; 
 

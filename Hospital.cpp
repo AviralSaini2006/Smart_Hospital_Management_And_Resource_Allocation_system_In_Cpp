@@ -1,5 +1,6 @@
 #include"Hospital.h"
 #include<fstream>
+#include <algorithm>
 using namespace std;
 
        bool hospital::bedExists(int id){
@@ -35,13 +36,29 @@ void hospital::AddDoctor(doctor d) {
 void hospital::AddBed(bed b) {
     beds.push_back(b);
 }
-      bool hospital::registerPatient(patient p) {
+      bool hospital::registerPatient(patient p)
+{
     if (patientExists(p.GetPatientID())) {
         cout << "Error: Patient ID already exists.\n";
         return false;
     }
 
     AddPatient(p);
+
+    int patientIndex = patients.size() - 1;
+
+    // Add patient to doctor waiting queue.
+    // All patients initially have equal priority.
+    // Earlier registrations get priority on a tie.
+    doctorWaitingQueue.push(
+        make_pair(0, -patientIndex)
+    );
+
+    cout << "\nPatient registered successfully.\n";
+
+    // Immediately attempt doctor assignment.
+    processDoctorWaitingQueue();
+
     return true;
 }
 
@@ -217,31 +234,69 @@ void hospital::dischargePatient(){
 }
 
 
-void hospital::showAdmitted(){
-    if(assignments.empty()){
-        cout<<"No patients are admitted right now."<<endl;
-        return;
-    }
-    for(size_t a=0;a<assignments.size();a++){
-        int pid=assignments[a].first;
-        int did=assignments[a].second;
-        string pname="?",dname="?";
-        int sev=-1;
-        for(size_t p=0;p<patients.size();p++){
-            if(patients[p].GetPatientID()==pid){ pname=patients[p].GetPatientName(); sev=patients[p].GetPatientSeverity(); }
-        }
-        for(size_t d=0;d<doctors.size();d++){
-            if(doctors[d].GetDocID()==did) dname=doctors[d].GetDocName();
-        }
-        string bedtext="no bed yet";
-        for(size_t b=0;b<beds.size();b++){
-            if(!beds[b].GetBedAvailability() && beds[b].GetPatientBedID()==pid){
-                bedtext="Bed "+to_string(beds[b].GetBedID())+" ("+beds[b].GetWardType()+")";
+
+void hospital::showAdmitted()
+{
+    bool found = false;
+
+    for (size_t p = 0; p < patients.size(); p++)
+    {
+        int pid = patients[p].GetPatientID();
+
+        // Find an occupied bed belonging to this patient
+        int bedIndex = -1;
+
+        for (size_t b = 0; b < beds.size(); b++)
+        {
+            if (!beds[b].GetBedAvailability() &&
+                beds[b].GetPatientBedID() == pid)
+            {
+                bedIndex = b;
+                break;
             }
         }
-        cout<<pname<<" (ID "<<pid<<", severity "<<sev<<") | Dr. "<<dname<<" | "<<bedtext<<endl;
+
+        // Skip patients who don't have a bed
+        if (bedIndex == -1)
+            continue;
+
+        found = true;
+
+        string doctorName = "Not Assigned";
+
+        // Find assigned doctor
+        for (size_t a = 0; a < assignments.size(); a++)
+        {
+            if (assignments[a].first == pid)
+            {
+                int did = assignments[a].second;
+
+                for (size_t d = 0; d < doctors.size(); d++)
+                {
+                    if (doctors[d].GetDocID() == did)
+                    {
+                        doctorName = doctors[d].GetDocName();
+                        break;
+                    }
+                }
+
+                break;
+            }
+        }
+
+        cout << patients[p].GetPatientName()
+             << " (ID: " << pid << ")"
+             << " | Severity: " << patients[p].GetPatientSeverity()
+             << " | Dr. " << doctorName
+             << " | Bed: " << beds[bedIndex].GetBedID()
+             << " (" << beds[bedIndex].GetWardType() << ")"
+             << endl;
     }
+
+    if (!found)
+        cout << "No patients are currently admitted." << endl;
 }
+
 
 
 // ---------------- Appointment scheduling ----------------
@@ -332,6 +387,8 @@ void hospital::saveData(){
 }
 
 void hospital::loadData(){
+    doctorWaitingQueue =
+    priority_queue<pair<int, int>>();
     ifstream in(DATA_FILE.c_str());
     if(!in){
         cout<<"No saved data file found."<<endl;
@@ -376,17 +433,24 @@ void hospital::loadData(){
         }
     }
 
-    // rebuild the priority queue: patients who have a severity but no doctor yet
-    for(size_t i=0;i<patients.size();i++){
-        if(patients[i].GetPatientSeverity()==-1) continue;
-        bool has_doctor=false;
-        for(size_t a=0;a<assignments.size();a++){
-            if(assignments[a].first==patients[i].GetPatientID()) has_doctor=true;
+    // Rebuild doctor waiting queue for unassigned patients
+for (size_t i = 0; i < patients.size(); i++) {
+
+    bool hasDoctor = false;
+
+    for (size_t a = 0; a < assignments.size(); a++) {
+        if (assignments[a].first == patients[i].GetPatientID()) {
+            hasDoctor = true;
+            break;
         }
-        if(!has_doctor) waiting_queue.push(make_pair(patients[i].GetPatientSeverity(),-(int)i));
     }
-    cout<<"Data loaded: "<<patients.size()<<" patients, "<<doctors.size()<<" doctors, "
-        <<beds.size()<<" beds."<<endl;
+
+    if (!hasDoctor) {
+        doctorWaitingQueue.push(
+            make_pair(0, -(int)i)
+        );
+    }
+}
 }
 
 
@@ -610,18 +674,22 @@ void hospital::processWaitingQueue() {
         }
     }
 }
-bool hospital::initialTriage(int patient_id, int severity)
+bool hospital::completeAssessment(
+    int patient_id,
+    string diagnosis,
+    int systolicBP,
+    int diastolicBP,
+    int heartRate,
+    int spo2,
+    int respiratoryRate,
+    double temperature)
 {
-    if (severity < 1 || severity > 10) {
-        cout << "Severity must be between 1 and 10.\n";
-        return false;
-    }
-
     int patientIndex = -1;
 
+    // Find patient
     for (size_t i = 0; i < patients.size(); i++) {
         if (patients[i].GetPatientID() == patient_id) {
-            patientIndex = static_cast<int>(i);
+            patientIndex = i;
             break;
         }
     }
@@ -633,63 +701,7 @@ bool hospital::initialTriage(int patient_id, int severity)
 
     patient &p = patients[patientIndex];
 
-    if (p.GetPatientSeverity() != -1) {
-        cout << "Patient has already undergone triage.\n";
-        return false;
-    }
-
-    // Record triage even if no doctor is available.
-    p.setSeverity(severity);
-    p.setEmergencyStatus(severity >= 8);
-
-    // Queue patient by severity.
-    doctorWaitingQueue.push(
-        make_pair(severity, -patientIndex)
-    );
-
-    cout << "\nInitial triage completed.\n";
-    cout << "Patient: " << p.GetPatientName() << '\n';
-    cout << "Severity: " << severity << '\n';
-
-    // Assign a doctor immediately if possible.
-    processDoctorWaitingQueue();
-
-    return true;
-}
-bool hospital::completeAssessment(int patient_id, string diagnosis)
-{
-    if (diagnosis.empty() || diagnosis == "NULL") {
-        cout << "Enter a valid diagnosis.\n";
-        return false;
-    }
-
-    int patientIndex = -1;
-
-    for (size_t i = 0; i < patients.size(); i++) {
-        if (patients[i].GetPatientID() == patient_id) {
-            patientIndex = static_cast<int>(i);
-            break;
-        }
-    }
-
-    if (patientIndex == -1) {
-        cout << "Patient ID not found.\n";
-        return false;
-    }
-
-    patient &p = patients[patientIndex];
-
-    if (p.GetPatientSeverity() == -1) {
-        cout << "Perform initial triage first.\n";
-        return false;
-    }
-
-    if (p.GetPatientDiagnosis() != "NULL") {
-        cout << "Patient has already been assessed.\n";
-        return false;
-    }
-
-    // Ensure a doctor has actually been assigned.
+    // Check whether doctor is assigned
     bool doctorAssigned = false;
 
     for (const auto &a : assignments) {
@@ -700,22 +712,94 @@ bool hospital::completeAssessment(int patient_id, string diagnosis)
     }
 
     if (!doctorAssigned) {
-        cout << "No doctor is assigned to this patient.\n";
+        cout << "No doctor assigned to this patient.\n";
         return false;
     }
 
-    // Save diagnosis and place patient in the priority queue.
-    p.setDiagnosis(diagnosis);
+    if (p.GetPatientDiagnosis() != "NULL") {
+        cout << "Patient has already been assessed.\n";
+        return false;
+    }
 
-    waiting_queue.push(
-        make_pair(p.GetPatientSeverity(), -patientIndex)
+    if (diagnosis.empty() || diagnosis == "NULL") {
+        cout << "Enter a valid diagnosis.\n";
+        return false;
+    }
+
+    // Basic input validation
+    if (systolicBP <= 0 || diastolicBP <= 0 ||
+        heartRate <= 0 || spo2 < 0 || spo2 > 100 ||
+        respiratoryRate <= 0 || temperature <= 0) {
+
+        cout << "Invalid vital parameters.\n";
+        return false;
+    }
+
+    // Store vital parameters
+    p.setVitals(
+        systolicBP,
+        diastolicBP,
+        heartRate,
+        spo2,
+        respiratoryRate,
+        temperature
     );
 
-    cout << "Doctor's assessment completed.\n";
-    cout << "Diagnosis: " << diagnosis << '\n';
-    cout << "Patient added to the bed-allocation queue.\n";
+    // Demonstration severity scoring
+    int score = 0;
 
-    // Automatically attempt bed allocation.
+    // Oxygen saturation
+    if (spo2 <= 90)
+        score += 3;
+    else if (spo2 <= 94)
+        score += 2;
+
+    // Heart rate
+    if (heartRate < 40 || heartRate > 130)
+        score += 3;
+    else if (heartRate < 50 || heartRate > 110)
+        score += 2;
+
+    // Respiratory rate
+    if (respiratoryRate < 8 || respiratoryRate > 30)
+        score += 3;
+    else if (respiratoryRate < 10 || respiratoryRate > 24)
+        score += 2;
+
+    // Blood pressure
+    if (systolicBP < 90 || systolicBP > 180)
+        score += 3;
+    else if (systolicBP < 100 || systolicBP > 160)
+        score += 2;
+
+    // Temperature
+    if (temperature < 35 || temperature >= 40)
+        score += 2;
+    else if (temperature >= 38.5)
+        score += 1;
+
+    // Convert score into severity (1-10)
+    int severity = min(10, score + 1);
+
+    p.setSeverity(severity);
+    p.setEmergencyStatus(severity >= 8);
+    p.setDiagnosis(diagnosis);
+
+    cout << "\n===== ASSESSMENT RESULTS =====\n";
+
+    cout << "Patient: " << p.GetPatientName() << '\n';
+    cout << "Diagnosis: " << diagnosis << '\n';
+
+    cout << "Calculated severity: "
+         << severity << "/10\n";
+
+    // Add patient to bed allocation queue
+    waiting_queue.push(
+        make_pair(severity, -patientIndex)
+    );
+
+    cout << "Patient added to bed allocation queue.\n";
+
     processWaitingQueue();
 
     return true;
@@ -732,7 +816,9 @@ void hospital::processDoctorWaitingQueue()
         return;
     }
 
-    // Go from most severe to least severe. A patient gets a free doctor only if
+    // Patients are initially unassessed.
+// Process them in registration order until
+// clinical assessment provides a severity score. A patient gets a free doctor only if
     // that doctor's specialisation matches the patient's required specialisation.
     // Patients who cannot be matched now stay in the queue for later.
     vector<pair<int,int> > skipped;

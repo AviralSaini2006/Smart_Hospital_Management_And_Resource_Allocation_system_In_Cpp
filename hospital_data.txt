@@ -1,4 +1,26 @@
-P 101 aviral 20 M Heart pain 9 1
-D 201 saini 20 M 0 cardiologist
-B 301 ICU 0 101
-A 101 201
+
+P 101 Rahul 24 M Pneumonia 5 0 Pulmonologist
+P 102 Priya 35 F CardiacIssue 9 1 Cardiologist
+P 103 Arjun 42 M Fracture 3 0 Orthopedic
+P 104 Neha 29 F Asthma 7 0 Pulmonologist
+P 105 Rohan 55 M Diabetes 2 0 General
+
+D 201 Sharma 45 M 0 Cardiologist
+D 202 Mehta 38 F 0 Pulmonologist
+D 203 Verma 42 M 0 Orthopedic
+D 204 Kapoor 36 F 0 General
+D 205 Singh 50 M 0 Pulmonologist
+D 206 Gupta 40 M 1 Neurologist
+
+B 301 ICU 0 102
+B 302 ICU 1 -1
+B 303 General 0 101
+B 304 General 1 -1
+B 305 General 1 -1
+B 306 General 1 -1
+
+A 101 202
+A 102 201
+A 103 203
+A 104 205
+A 105 204
