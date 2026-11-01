@@ -10,6 +10,12 @@ using namespace std;
         this->severity=severity;
         this->emergency_status=emergency_status;
         this->required_specialisation=required_specialisation;
+        this->systolicBP = 0;
+this->diastolicBP = 0;
+this->heartRate = 0;
+this->spo2 = 0;
+this->respiratoryRate = 0;
+this->temperature = 0.0;
        }
     int patient::GetPatientID(){
         return patient_id;
@@ -54,3 +60,37 @@ using namespace std;
     void patient::setEmergencyStatus(bool e){
         emergency_status=e;
     }
+    void patient::setVitals(int sys, int dia, int hr,
+                        int oxygen, int rr, double temp)
+{
+    systolicBP = sys;
+    diastolicBP = dia;
+    heartRate = hr;
+    spo2 = oxygen;
+    respiratoryRate = rr;
+    temperature = temp;
+}
+
+int patient::getSystolicBP() {
+    return systolicBP;
+}
+
+int patient::getDiastolicBP() {
+    return diastolicBP;
+}
+
+int patient::getHeartRate() {
+    return heartRate;
+}
+
+int patient::getSpO2() {
+    return spo2;
+}
+
+int patient::getRespiratoryRate() {
+    return respiratoryRate;
+}
+
+double patient::getTemperature() {
+    return temperature;
+}

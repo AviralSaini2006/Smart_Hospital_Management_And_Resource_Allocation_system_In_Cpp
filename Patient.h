@@ -13,7 +13,10 @@ class patient{
        char patient_gender;
        int severity;
        bool emergency_status;
-       string required_specialisation;   // doctor specialisation this patient needs ("NULL" = any)
+       string required_specialisation;
+       int systolicBP, diastolicBP;
+int heartRate, spo2, respiratoryRate;
+double temperature;  // doctor specialisation this patient needs ("NULL" = any)
     public:
        patient(int id,string name,int age,char gender,string diagnosis,int sev,bool emergency_status,string required_specialisation);
     int GetPatientID();
@@ -28,6 +31,15 @@ class patient{
     void setSeverity(int s);
     void setDiagnosis(string d);
     void setEmergencyStatus(bool e);
+    void setVitals(int sys, int dia, int hr,
+               int oxygen, int rr, double temp);
+
+int getSystolicBP();
+int getDiastolicBP();
+int getHeartRate();
+int getSpO2();
+int getRespiratoryRate();
+double getTemperature();
 };
 
 #endif

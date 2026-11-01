@@ -17,13 +17,12 @@ void patientMenu(hospital &h) {
     do {
         cout << "\n===== PATIENT SERVICES =====\n";
         cout << "1. Register Patient\n";
-        cout << "2. Process Next Patient\n";
+        cout << "2. Doctor Assessment\n";
         cout << "3. Discharge Patient\n";
         cout << "4. Transfer Patient Bed\n";
         cout << "5. Show All Patients\n";
         cout << "6. Show Admitted Patients\n";
         cout << "7. Show Waiting Queue\n";
-        cout << "8. Complete Doctor Assessment\n";
         cout << "0. Back\n";
         cout << "Enter choice: ";
 
@@ -62,15 +61,50 @@ void patientMenu(hospital &h) {
             }
 
             case 2: {
-    int id, severity;
+    int id;
+    int systolicBP, diastolicBP;
+    int heartRate, spo2, respiratoryRate;
+    double temperature;
+    string diagnosis;
 
-    cout << "Patient ID for triage: ";
+    cout << "\n===== DOCTOR ASSESSMENT =====\n";
+
+    cout << "Patient ID: ";
     cin >> id;
 
-    cout << "Severity (1-10): ";
-    cin >> severity;
+    cout << "Systolic BP: ";
+    cin >> systolicBP;
 
-    h.initialTriage(id, severity);
+    cout << "Diastolic BP: ";
+    cin >> diastolicBP;
+
+    cout << "Heart Rate (BPM): ";
+    cin >> heartRate;
+
+    cout << "SpO2 (%): ";
+    cin >> spo2;
+
+    cout << "Respiratory Rate: ";
+    cin >> respiratoryRate;
+
+    cout << "Temperature (Celsius): ";
+    cin >> temperature;
+
+    cout << "Diagnosis: ";
+    cin >> ws;
+    getline(cin, diagnosis);
+
+    h.completeAssessment(
+        id,
+        diagnosis,
+        systolicBP,
+        diastolicBP,
+        heartRate,
+        spo2,
+        respiratoryRate,
+        temperature
+    );
+
     break;
 }
 
@@ -109,20 +143,6 @@ void patientMenu(hospital &h) {
             case 7:
                 h.showQueue();
                 break;
-            case 8: {
-    int id;
-    string diagnosis;
-
-    cout << "Patient ID for assessment: ";
-    cin >> id;
-
-    cout << "Diagnosis: ";
-    cin >> ws;
-    getline(cin, diagnosis);
-
-    h.completeAssessment(id, diagnosis);
-    break;
-}
 
             case 0:
                 break;
@@ -179,7 +199,6 @@ void hospitalSetupMenu(hospital &h) {
                 doctor d(id, name, age, gender,true, specialization);
 
                 h.registerDoctor(d);
-                h.processDoctorWaitingQueue();
                 break;
             }
 
