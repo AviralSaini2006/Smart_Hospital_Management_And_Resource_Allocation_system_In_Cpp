@@ -537,6 +537,7 @@ void hospital::loadData()
     waiting_queue = priority_queue<pair<int, int>>();
     doctorWaitingQueue = priority_queue<pair<int, int>>();
 
+
     hospitalGraph[0];
 
     string line;
@@ -574,12 +575,22 @@ void hospital::loadData()
                          >> quoted(specialisation)))
                 continue;
 
-            record >> systolic
-                   >> diastolic
-                   >> heartRate
-                   >> oxygen
-                   >> respiratoryRate
-                   >> temperature;
+            if (!(record >> systolic
+                         >> diastolic
+                         >> heartRate
+                         >> oxygen
+                         >> respiratoryRate
+                         >> temperature)) {
+                record.clear();
+
+                systolic = 0;
+                diastolic = 0;
+                heartRate = 0;
+                oxygen = 0;
+                respiratoryRate = 0;
+                temperature = 0.0;
+            }
+
 
             if (!(record >> discharged)) {
                 record.clear();
@@ -1176,6 +1187,17 @@ void hospital::processDoctorWaitingQueue()
 
         bool alreadyAssigned = false;
 
+        for (const auto &a : assignments) {
+            if (a.first == p.GetPatientID()) {
+                alreadyAssigned = true;
+                break;
+            }
+        }
+
+        if (alreadyAssigned) continue;
+
+
+
         for (const auto &a : assignments)
         {
             if (a.first == p.GetPatientID())
@@ -1219,7 +1241,6 @@ void hospital::processDoctorWaitingQueue()
 
             cout << "Required specialisation: "
                  << p.GetRequiredSpecialisation() << '\n';
-
             skipped.push_back(top);
             continue;
         }
@@ -1649,7 +1670,7 @@ void hospital::showDoctorWaitingQueue()
         if (p.GetDischarged() || p.GetTransferred())
             continue;
 
-        cout << "Patient ID: " << p.GetPatientID() << '\n';
+        cout<< "Patient ID: " << p.GetPatientID() << '\n';
         cout << "Name: " << p.GetPatientName() << '\n';
         cout << "Required Specialisation: "
              << p.GetRequiredSpecialisation() << '\n';
