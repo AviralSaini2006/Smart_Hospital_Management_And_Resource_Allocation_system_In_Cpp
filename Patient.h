@@ -1,24 +1,31 @@
+
 #ifndef PATIENT_H
 #define PATIENT_H
 
-#include<string>
-#include<iostream>
-
+#include <string>
+#include <iostream>
 using namespace std;
 
-class patient{
-    private:
-       int patient_id,patient_age;
-       string patient_name,diagnosis;
-       char patient_gender;
-       int severity;
-       bool emergency_status;
-       string required_specialisation;
-       int systolicBP, diastolicBP;
-int heartRate, spo2, respiratoryRate;
-double temperature;  // doctor specialisation this patient needs ("NULL" = any)
-    public:
-       patient(int id,string name,int age,char gender,string diagnosis,int sev,bool emergency_status,string required_specialisation);
+class patient {
+private:
+    int patient_id, patient_age;
+    string patient_name, diagnosis;
+    char patient_gender;
+    int severity;
+    bool emergency_status;
+    string required_specialisation;
+
+    int systolicBP, diastolicBP;
+    int heartRate, spo2, respiratoryRate;
+    double temperature;
+
+    bool discharged;
+
+public:
+    patient(int id, string name, int age, char gender,
+            string diagnosis, int sev, bool emergency_status,
+            string required_specialisation, bool discharged = false);
+
     int GetPatientID();
     int GetPatientAge();
     string GetPatientName();
@@ -27,19 +34,25 @@ double temperature;  // doctor specialisation this patient needs ("NULL" = any)
     int GetPatientSeverity();
     bool GetPatientEmergencyStatus();
     string GetRequiredSpecialisation();
+
     void PatientDisplay();
+
     void setSeverity(int s);
     void setDiagnosis(string d);
     void setEmergencyStatus(bool e);
-    void setVitals(int sys, int dia, int hr,
-               int oxygen, int rr, double temp);
 
-int getSystolicBP();
-int getDiastolicBP();
-int getHeartRate();
-int getSpO2();
-int getRespiratoryRate();
-double getTemperature();
+    void setVitals(int sys, int dia, int hr,
+                   int oxygen, int rr, double temp);
+
+    int getSystolicBP();
+    int getDiastolicBP();
+    int getHeartRate();
+    int getSpO2();
+    int getRespiratoryRate();
+    double getTemperature();
+
+    bool GetDischarged();
+    void setDischarged(bool status);
 };
 
 #endif
