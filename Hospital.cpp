@@ -5,6 +5,12 @@
 #include <queue>
 #include <utility>
 #include <sstream>
+#include <map>
+#include <limits>
+#include <functional>
+#include <ctime>
+#include<cctype>
+
 using namespace std;
 
        bool hospital::bedExists(int id){
@@ -49,18 +55,13 @@ void hospital::AddBed(bed b) {
 
     AddPatient(p);
 
-    int patientIndex = patients.size() - 1;
+    int patientIndex = static_cast<int>(patients.size()) - 1;
 
-    // Add patient to doctor waiting queue.
-    // All patients initially have equal priority.
-    // Earlier registrations get priority on a tie.
-    doctorWaitingQueue.push(
-        make_pair(0, -patientIndex)
-    );
+    doctorWaitingQueue.push(make_pair(0, -patientIndex));
 
     cout << "\nPatient registered successfully.\n";
+    cout << "Patient added to doctor waiting queue.\n";
 
-    // Immediately attempt doctor assignment.
     processDoctorWaitingQueue();
 
     return true;
@@ -421,69 +422,107 @@ const string DATA_FILE="hospital_data.txt";
 
 
 
-void hospital::saveData() {
+void hospital::saveData()
+{
     ofstream out(DATA_FILE.c_str());
 
     if (!out) {
-        cout << "Could not save data." << endl;
+        cout << "Could not save data.\n";
         return;
     }
 
-    for (size_t i = 0; i < patients.size(); i++) {
+    // Save patients
+    for (auto &p : patients) {
         out << "P "
-            << patients[i].GetPatientID() << " "
-            << quoted(patients[i].GetPatientName()) << " "
-            << patients[i].GetPatientAge() << " "
-            << patients[i].GetPatientGender() << " "
-            << quoted(patients[i].GetPatientDiagnosis()) << " "
-            << patients[i].GetPatientSeverity() << " "
-            << patients[i].GetPatientEmergencyStatus() << " "
-            << quoted(patients[i].GetRequiredSpecialisation()) << " "
-            << patients[i].getSystolicBP() << " "
-            << patients[i].getDiastolicBP() << " "
-            << patients[i].getHeartRate() << " "
-            << patients[i].getSpO2() << " "
-            << patients[i].getRespiratoryRate() << " "
-            << patients[i].getTemperature() << " "
-            << patients[i].GetDischarged() << "\n";
+            << p.GetPatientID() << " "
+            << quoted(p.GetPatientName()) << " "
+            << p.GetPatientAge() << " "
+            << p.GetPatientGender() << " "
+            << quoted(p.GetPatientDiagnosis()) << " "
+            << p.GetPatientSeverity() << " "
+            << p.GetPatientEmergencyStatus() << " "
+            << quoted(p.GetRequiredSpecialisation()) << " "
+            << p.getSystolicBP() << " "
+            << p.getDiastolicBP() << " "
+            << p.getHeartRate() << " "
+            << p.getSpO2() << " "
+            << p.getRespiratoryRate() << " "
+            << p.getTemperature() << " "
+            << p.GetDischarged() << " "
+            << p.GetTransferred() << " "
+            << quoted(p.GetTransferHospital()) << "\n";
     }
 
-    for (size_t i = 0; i < doctors.size(); i++) {
+    // Save doctors
+    for (auto &d : doctors) {
         out << "D "
-            << doctors[i].GetDocID() << " "
-            << quoted(doctors[i].GetDocName()) << " "
-            << doctors[i].GetDocAge() << " "
-            << doctors[i].GetDocGender() << " "
-            << doctors[i].GetDocAvailability() << " "
-            << quoted(doctors[i].GetDocSpecialisation()) << "\n";
+            << d.GetDocID() << " "
+            << quoted(d.GetDocName()) << " "
+            << d.GetDocAge() << " "
+            << d.GetDocGender() << " "
+            << d.GetDocAvailability() << " "
+            << quoted(d.GetDocSpecialisation()) << "\n";
     }
 
-    for (size_t i = 0; i < beds.size(); i++) {
+    // Save beds
+    for (auto &b : beds) {
         out << "B "
-            << beds[i].GetBedID() << " "
-            << quoted(beds[i].GetWardType()) << " "
-            << beds[i].GetBedAvailability() << " "
-            << beds[i].GetPatientBedID() << "\n";
+            << b.GetBedID() << " "
+            << quoted(b.GetWardType()) << " "
+            << b.GetBedAvailability() << " "
+            << b.GetPatientBedID() << "\n";
     }
 
-    for (size_t i = 0; i < assignments.size(); i++) {
-        out << "A "
-            << assignments[i].first << " "
-            << assignments[i].second << "\n";
+    // Save doctor assignments
+    for (auto &a : assignments) {
+        out << "A " << a.first << " " << a.second << "\n";
     }
 
-    cout << "Data saved to " << DATA_FILE << endl;
+    // Save partner hospitals
+    for (auto &h : partnerHospitals) {
+        out << "H "
+            << h.hospital_id << " "
+            << quoted(h.name) << " "
+            << quoted(h.location) << " "
+            << quoted(h.specialization) << " "
+            << h.totalICUBeds << " "
+            << h.availableICUBeds << "\n";
+    }
+
+    // Save routes
+    for (auto &node : hospitalGraph) {
+        for (auto &edge : node.second) {
+            if (node.first < edge.first) {
+                out << "R "
+                    << node.first << " "
+                    << edge.first << " "
+                    << edge.second << "\n";
+            }
+        }
+    }
+
+    // Save transfer records
+    for (auto &r : transferRecords) {
+        out << "T "
+            << r.patient_id << " "
+            << quoted(r.hospital_name) << " "
+            << quoted(r.location) << " "
+            << quoted(r.reason) << " "
+            << static_cast<long long>(r.transfer_time) << " "
+            << r.distanceKm << "\n";
+    }
+
+    out.close();
+
+    cout << "All hospital data saved successfully.\n";
 }
 
-
-
-
-
-void hospital::loadData() {
+void hospital::loadData()
+{
     ifstream in(DATA_FILE.c_str());
 
     if (!in) {
-        cout << "No saved data file found." << endl;
+        cout << "No saved data file found.\n";
         return;
     }
 
@@ -491,38 +530,57 @@ void hospital::loadData() {
     doctors.clear();
     beds.clear();
     assignments.clear();
+    partnerHospitals.clear();
+    transferRecords.clear();
+    hospitalGraph.clear();
 
     waiting_queue = priority_queue<pair<int, int>>();
     doctorWaitingQueue = priority_queue<pair<int, int>>();
 
+
+    hospitalGraph[0];
+
     string line;
 
     while (getline(in, line)) {
-        if (line.empty()) continue;
+        if (line.empty())
+            continue;
 
         istringstream record(line);
         char type;
-        record >> type;
+
+        if (!(record >> type))
+            continue;
 
         if (type == 'P') {
             int id, age, severity;
-            bool emergency, discharged = false;
+            bool emergency, discharged = false, transferred = false;
             char gender;
 
             string name, diagnosis, specialisation;
+            string transferHospital;
 
             int systolic = 0, diastolic = 0;
-            int heartRate = 0, oxygen = 0, respiratoryRate = 0;
+            int heartRate = 0, oxygen = 0;
+            int respiratoryRate = 0;
             double temperature = 0.0;
 
-            if (!(record >> id >> quoted(name) >> age >> gender
-                        >> quoted(diagnosis) >> severity >> emergency
-                        >> quoted(specialisation))) {
+            if (!(record >> id
+                         >> quoted(name)
+                         >> age
+                         >> gender
+                         >> quoted(diagnosis)
+                         >> severity
+                         >> emergency
+                         >> quoted(specialisation)))
                 continue;
-            }
 
-            if (!(record >> systolic >> diastolic >> heartRate
-                         >> oxygen >> respiratoryRate >> temperature)) {
+            if (!(record >> systolic
+                         >> diastolic
+                         >> heartRate
+                         >> oxygen
+                         >> respiratoryRate
+                         >> temperature)) {
                 record.clear();
 
                 systolic = 0;
@@ -533,16 +591,30 @@ void hospital::loadData() {
                 temperature = 0.0;
             }
 
+
             if (!(record >> discharged)) {
                 record.clear();
                 discharged = false;
             }
 
-            patient p(id, name, age, gender, diagnosis, severity,
-                      emergency, specialisation, discharged);
+            if (!(record >> transferred
+                         >> quoted(transferHospital))) {
+                record.clear();
+                transferred = false;
+                transferHospital = "";
+            }
 
-            p.setVitals(systolic, diastolic, heartRate,
-                        oxygen, respiratoryRate, temperature);
+            patient p(
+                id, name, age, gender,
+                diagnosis, severity, emergency,
+                specialisation, discharged,
+                transferred, transferHospital
+            );
+
+            p.setVitals(
+                systolic, diastolic, heartRate,
+                oxygen, respiratoryRate, temperature
+            );
 
             patients.push_back(p);
         }
@@ -551,11 +623,14 @@ void hospital::loadData() {
             int id, age;
             bool availability;
             char gender;
-
             string name, specialisation;
 
-            if (record >> id >> quoted(name) >> age >> gender
-                       >> availability >> quoted(specialisation)) {
+            if (record >> id
+                       >> quoted(name)
+                       >> age
+                       >> gender
+                       >> availability
+                       >> quoted(specialisation)) {
                 doctors.push_back(
                     doctor(id, name, age, gender,
                            availability, specialisation)
@@ -568,8 +643,10 @@ void hospital::loadData() {
             bool availability;
             string ward;
 
-            if (record >> id >> quoted(ward)
-                       >> availability >> patientID) {
+            if (record >> id
+                       >> quoted(ward)
+                       >> availability
+                       >> patientID) {
                 beds.push_back(
                     bed(id, ward, availability, patientID)
                 );
@@ -585,42 +662,86 @@ void hospital::loadData() {
                 );
             }
         }
+
+        else if (type == 'H') {
+            PartnerHospital h;
+
+            if (record >> h.hospital_id
+                       >> quoted(h.name)
+                       >> quoted(h.location)
+                       >> quoted(h.specialization)
+                       >> h.totalICUBeds
+                       >> h.availableICUBeds) {
+                partnerHospitals.push_back(h);
+                hospitalGraph[h.hospital_id];
+            }
+        }
+
+        else if (type == 'R') {
+            int fromID, toID, distance;
+
+            if (record >> fromID >> toID >> distance) {
+                if (distance > 0) {
+                    hospitalGraph[fromID].push_back(
+                        make_pair(toID, distance)
+                    );
+
+                    hospitalGraph[toID].push_back(
+                        make_pair(fromID, distance)
+                    );
+                }
+            }
+        }
+
+        else if (type == 'T') {
+            TransferRecord r;
+            long long savedTime;
+
+            if (record >> r.patient_id
+                       >> quoted(r.hospital_name)
+                       >> quoted(r.location)
+                       >> quoted(r.reason)
+                       >> savedTime
+                       >> r.distanceKm) {
+                r.transfer_time = static_cast<time_t>(savedTime);
+                transferRecords.push_back(r);
+            }
+        }
     }
 
     in.close();
 
+    // Reconstruct waiting queues
     for (size_t i = 0; i < patients.size(); i++) {
         patient &p = patients[i];
 
-        if (p.GetDischarged()) continue;
+        if (p.GetDischarged() || p.GetTransferred())
+            continue;
 
         int patientID = p.GetPatientID();
 
         bool hasDoctor = false;
         bool hasBed = false;
 
-        for (size_t j = 0; j < assignments.size(); j++) {
-            if (assignments[j].first == patientID) {
+        for (auto &a : assignments) {
+            if (a.first == patientID) {
                 hasDoctor = true;
                 break;
             }
         }
 
-        for (size_t j = 0; j < beds.size(); j++) {
-            if (!beds[j].GetBedAvailability() &&
-                beds[j].GetPatientBedID() == patientID) {
+        for (auto &b : beds) {
+            if (!b.GetBedAvailability() &&
+                b.GetPatientBedID() == patientID) {
                 hasBed = true;
                 break;
             }
         }
 
-        if (!hasDoctor && p.GetPatientDiagnosis() != "NULL") {
-            p.setDischarged(true);
-            continue;
-        }
-
         if (!hasDoctor) {
-            doctorWaitingQueue.push(make_pair(0, -(int)i));
+            doctorWaitingQueue.push(
+                make_pair(0, -(int)i)
+            );
         }
         else if (!hasBed &&
                  p.GetPatientDiagnosis() != "NULL" &&
@@ -631,7 +752,12 @@ void hospital::loadData() {
         }
     }
 
-    cout << "Data loaded successfully." << endl;
+    cout << "\nHospital data loaded successfully.\n";
+    cout << "Patients: " << patients.size() << '\n';
+    cout << "Doctors: " << doctors.size() << '\n';
+    cout << "Beds: " << beds.size() << '\n';
+    cout << "Partner hospitals: " << partnerHospitals.size() << '\n';
+    cout << "Transfer records: " << transferRecords.size() << '\n';
 }
 
 
@@ -703,31 +829,33 @@ void hospital::showWardSummary(){
             <<(total[w]-free_beds[w])<<" occupied"<<endl;
     }
 }
+
 bool hospital::processNextPatient()
 {
-    if (waiting_queue.empty()) {
-        cout << "No patients are waiting for a bed.\n";
+    if (waiting_queue.empty())
         return false;
-    }
 
     pair<int, int> top = waiting_queue.top();
     int patientIndex = -top.second;
 
     if (patientIndex < 0 ||
         patientIndex >= static_cast<int>(patients.size())) {
-        cout << "Invalid patient queue entry.\n";
-        return false;
+        waiting_queue.pop();
+        return true;
     }
 
     patient &p = patients[patientIndex];
 
-    // A diagnosis must be recorded before bed allocation.
+    if (p.GetDischarged() || p.GetTransferred()) {
+        waiting_queue.pop();
+        return true;
+    }
+
     if (p.GetPatientDiagnosis() == "NULL") {
         cout << "Patient assessment is incomplete.\n";
         return false;
     }
 
-    // Confirm the patient already has an assigned doctor.
     int doctorId = -1;
 
     for (const auto &a : assignments) {
@@ -742,60 +870,58 @@ bool hospital::processNextPatient()
         return false;
     }
 
-    // Find a suitable free bed.
     int bedIndex = -1;
+    bool requiresICU = (p.GetPatientSeverity() >= 8);
 
     for (size_t i = 0; i < beds.size(); i++) {
-        if (!beds[i].GetBedAvailability()) {
+        if (!beds[i].GetBedAvailability())
             continue;
+
+        string ward = beds[i].GetWardType();
+
+        for (char &c : ward)
+            c = toupper(static_cast<unsigned char>(c));
+
+        if (requiresICU && ward == "ICU") {
+            bedIndex = static_cast<int>(i);
+            break;
         }
 
-        // Severity 8-10 requires an ICU bed in this project.
-        if (p.GetPatientSeverity() >= 8) {
-            if (beds[i].GetWardType() == "ICU") {
-                bedIndex = static_cast<int>(i);
-                break;
-            }
-        } else {
+        if (!requiresICU && ward != "ICU") {
             bedIndex = static_cast<int>(i);
             break;
         }
     }
 
     if (bedIndex == -1) {
-        if (p.GetPatientSeverity() >= 8) {
-            cout << "No free ICU bed. Patient remains in queue.\n";
-        } else {
-            cout << "No suitable free bed. Patient remains in queue.\n";
+        if (requiresICU) {
+            cout << "\nNo local ICU bed available for patient "
+                 << p.GetPatientID() << ".\n";
+
+            if (transferCriticalPatient(patientIndex)) {
+                waiting_queue.pop();
+                return true;
+            }
+        }
+        else {
+            cout << "No suitable free non-ICU bed. Patient remains in queue.\n";
         }
 
         return false;
     }
 
-    // Allocate the bed; retain the existing doctor assignment.
-    bed &b = beds[bedIndex];
+    beds[bedIndex].AssignPatient(p.GetPatientID());
 
-    b.AssignPatient(p.GetPatientID());
     waiting_queue.pop();
 
-    string doctorName = "Unknown";
-
-    for ( auto &d : doctors) {
-        if (d.GetDocID() == doctorId) {
-            doctorName = d.GetDocName();
-            break;
-        }
-    }
-
     cout << "\nPatient admitted successfully.\n";
-    cout << "Patient: " << p.GetPatientName() << '\n';
-    cout << "Diagnosis: " << p.GetPatientDiagnosis() << '\n';
-    cout << "Doctor: Dr. " << doctorName << '\n';
-    cout << "Bed ID: " << b.GetBedID() << '\n';
-    cout << "Ward: " << b.GetWardType() << '\n';
+    cout << "Patient ID: " << p.GetPatientID() << '\n';
+    cout << "Bed ID: " << beds[bedIndex].GetBedID() << '\n';
+    cout << "Ward: " << beds[bedIndex].GetWardType() << '\n';
 
     return true;
 }
+
 bool hospital::admitPatient(int patient_id, int severity, string diagnosis) {
     if (!queuePatient(patient_id, severity, diagnosis)) {
         return false;
@@ -826,6 +952,11 @@ bool hospital::dischargePatientById(int patient_id) {
         cout << "This patient has already been discharged.\n";
         return false;
     }
+    if (p.GetTransferred()) {
+    cout << "Patient has already been transferred to "
+         << p.GetTransferHospital() << ".\n";
+    return false;
+}
 
     int doctor_id = -1;
 
@@ -1020,40 +1151,39 @@ bool hospital::completeAssessment(
     return true;
 }
 
-void hospital::processDoctorWaitingQueue() {
-    if (doctorWaitingQueue.empty()) return;
 
-    bool anyFree = false;
-
-    for (size_t i = 0; i < doctors.size(); i++) {
-        if (doctors[i].GetDocAvailability()) {
-            anyFree = true;
-            break;
-        }
-    }
-
-    if (!anyFree) {
-        cout << "No doctor available. Patients remain "
-             << "in the doctor waiting queue.\n";
-        return;
-    }
-
+void hospital::processDoctorWaitingQueue()
+{
     vector<pair<int, int>> skipped;
 
-    while (!doctorWaitingQueue.empty()) {
-        pair<int, int> top = doctorWaitingQueue.top();
+    auto normalize = [](string s) {
+        while (!s.empty() && isspace((unsigned char)s.front()))
+            s.erase(s.begin());
+
+        while (!s.empty() && isspace((unsigned char)s.back()))
+            s.pop_back();
+
+        for (char &c : s)
+            c = tolower((unsigned char)c);
+
+        return s;
+    };
+
+    while (!doctorWaitingQueue.empty())
+    {
+        auto top = doctorWaitingQueue.top();
         doctorWaitingQueue.pop();
 
         int patientIndex = -top.second;
 
         if (patientIndex < 0 ||
-            patientIndex >= (int)patients.size()) {
+            patientIndex >= static_cast<int>(patients.size()))
             continue;
-        }
 
         patient &p = patients[patientIndex];
 
-        if (p.GetDischarged()) continue;
+        if (p.GetDischarged() || p.GetTransferred())
+            continue;
 
         bool alreadyAssigned = false;
 
@@ -1066,24 +1196,51 @@ void hospital::processDoctorWaitingQueue() {
 
         if (alreadyAssigned) continue;
 
-        string need = p.GetRequiredSpecialisation();
-        bool anyDoctor = (need == "NULL" || need.empty());
+
+
+        for (const auto &a : assignments)
+        {
+            if (a.first == p.GetPatientID())
+            {
+                alreadyAssigned = true;
+                break;
+            }
+        }
+
+        if (alreadyAssigned)
+            continue;
+
+        string required = normalize(p.GetRequiredSpecialisation());
 
         int doctorIndex = -1;
 
-        for (size_t i = 0; i < doctors.size(); i++) {
-            if (!doctors[i].GetDocAvailability()) continue;
-
-            if (!anyDoctor &&
-                doctors[i].GetDocSpecialisation() != need) {
+        for (size_t i = 0; i < doctors.size(); i++)
+        {
+            if (!doctors[i].GetDocAvailability())
                 continue;
-            }
 
-            doctorIndex = (int)i;
-            break;
+            string availableSpecialisation =
+                normalize(doctors[i].GetDocSpecialisation());
+
+            bool match =
+                required.empty() ||
+                required == "null" ||
+                required == availableSpecialisation;
+
+            if (match)
+            {
+                doctorIndex = static_cast<int>(i);
+                break;
+            }
         }
 
-        if (doctorIndex == -1) {
+        if (doctorIndex == -1)
+        {
+            cout << "\nNo matching available doctor found for "
+                 << p.GetPatientName() << ".\n";
+
+            cout << "Required specialisation: "
+                 << p.GetRequiredSpecialisation() << '\n';
             skipped.push_back(top);
             continue;
         }
@@ -1096,13 +1253,427 @@ void hospital::processDoctorWaitingQueue() {
             make_pair(p.GetPatientID(), d.GetDocID())
         );
 
-        cout << "\nDoctor assigned successfully.\n";
+        cout << "\nDoctor assigned successfully!\n";
         cout << "Patient: " << p.GetPatientName() << '\n';
-        cout << "Doctor: Dr. " << d.GetDocName()
-             << " (" << d.GetDocSpecialisation() << ")\n";
+        cout << "Doctor: Dr. " << d.GetDocName() << '\n';
+        cout << "Specialisation: "
+             << d.GetDocSpecialisation() << '\n';
     }
 
-    for (size_t i = 0; i < skipped.size(); i++) {
-        doctorWaitingQueue.push(skipped[i]);
+    for (const auto &entry : skipped)
+        doctorWaitingQueue.push(entry);
+}
+
+bool hospital::registerPartnerHospital(int id, string name, string location,
+                                        string specialization, int icuBeds)
+{
+    if (id <= 0 || icuBeds < 0) {
+        cout << "Invalid hospital ID or ICU bed count.\n";
+        return false;
+    }
+
+    for (const auto &h : partnerHospitals) {
+        if (h.hospital_id == id) {
+            cout << "Hospital ID already exists.\n";
+            return false;
+        }
+    }
+
+    PartnerHospital h;
+
+    h.hospital_id = id;
+    h.name = name;
+    h.location = location;
+    h.specialization = specialization;
+    h.totalICUBeds = icuBeds;
+    h.availableICUBeds = icuBeds;
+
+    partnerHospitals.push_back(h);
+    hospitalGraph[id];
+
+    cout << "Partner hospital registered successfully.\n";
+    return true;
+}
+bool hospital::addHospitalRoute(int fromID, int toID, int distanceKm)
+{
+    if (fromID == toID || distanceKm <= 0) {
+        cout << "Invalid route or distance.\n";
+        return false;
+    }
+
+    auto hospitalExists = [&](int id) {
+        if (id == 0)
+            return true;
+
+        for (const auto &h : partnerHospitals) {
+            if (h.hospital_id == id)
+                return true;
+        }
+
+        return false;
+    };
+
+    if (!hospitalExists(fromID) || !hospitalExists(toID)) {
+        cout << "One or both hospital IDs do not exist.\n";
+        return false;
+    }
+
+    auto updateEdge = [&](int from, int to) {
+        for (auto &edge : hospitalGraph[from]) {
+            if (edge.first == to) {
+                edge.second = distanceKm;
+                return;
+            }
+        }
+
+        hospitalGraph[from].push_back({to, distanceKm});
+    };
+
+    updateEdge(fromID, toID);
+    updateEdge(toID, fromID);
+
+    cout << "Route added successfully.\n";
+    return true;
+}
+bool hospital::updatePartnerICUAvailability(int id, int availableBeds)
+{
+    for (auto &h : partnerHospitals) {
+        if (h.hospital_id == id) {
+            if (availableBeds < 0 ||
+                availableBeds > h.totalICUBeds) {
+                cout << "Invalid ICU bed count.\n";
+                return false;
+            }
+
+            h.availableICUBeds = availableBeds;
+
+            cout << "ICU availability updated.\n";
+
+            processWaitingQueue();
+            return true;
+        }
+    }
+
+    cout << "Partner hospital not found.\n";
+    return false;
+}
+void hospital::showPartnerHospitals()
+{
+    if (partnerHospitals.empty()) {
+        cout << "No partner hospitals registered.\n";
+        return;
+    }
+
+    cout << "\n========== PARTNER HOSPITALS ==========\n";
+
+    for (const auto &h : partnerHospitals) {
+        cout << "\nHospital ID: " << h.hospital_id;
+        cout << "\nName: " << h.name;
+        cout << "\nLocation: " << h.location;
+        cout << "\nSpecialization: " << h.specialization;
+        cout << "\nTotal ICU Beds: " << h.totalICUBeds;
+        cout << "\nAvailable ICU Beds: " << h.availableICUBeds;
+        cout << "\n---------------------------------------\n";
+    }
+}
+void hospital::showHospitalRoutes()
+{
+    cout << "\n========== HOSPITAL NETWORK ==========\n";
+
+    bool found = false;
+
+    for (const auto &node : hospitalGraph) {
+        int fromID = node.first;
+
+        for (const auto &edge : node.second) {
+            int toID = edge.first;
+
+            if (fromID >= toID)
+                continue;
+
+            string fromName = HospitalName;
+            string toName;
+
+            if (fromID != 0) {
+                for (const auto &h : partnerHospitals) {
+                    if (h.hospital_id == fromID) {
+                        fromName = h.name;
+                        break;
+                    }
+                }
+            }
+
+            if (toID == 0) {
+                toName = HospitalName;
+            }
+            else {
+                for (const auto &h : partnerHospitals) {
+                    if (h.hospital_id == toID) {
+                        toName = h.name;
+                        break;
+                    }
+                }
+            }
+
+            cout << fromName << " <---- "
+                 << edge.second << " km ----> "
+                 << toName << '\n';
+
+            found = true;
+        }
+    }
+
+    if (!found)
+        cout << "No routes registered.\n";
+}
+void hospital::showTransferRecords()
+{
+    if (transferRecords.empty()) {
+        cout << "No patients have been transferred.\n";
+        return;
+    }
+
+    cout << "\n========== TRANSFER RECORDS ==========\n";
+
+    for (const auto &r : transferRecords) {
+        cout << "\nPatient ID: " << r.patient_id;
+        cout << "\nDestination: " << r.hospital_name;
+        cout << "\nLocation: " << r.location;
+        cout << "\nReason: " << r.reason;
+        cout << "\nDistance: " << r.distanceKm << " km";
+
+        tm *timeInfo = localtime(&r.transfer_time);
+
+        if (timeInfo != nullptr) {
+            cout << "\nTransfer Time: "
+                 << put_time(timeInfo, "%d-%m-%Y %H:%M:%S");
+        }
+
+        cout << "\n--------------------------------------\n";
+    }
+}
+bool hospital::transferCriticalPatient(int patientIndex)
+{
+    if (patientIndex < 0 ||
+        patientIndex >= static_cast<int>(patients.size())) {
+        return false;
+    }
+
+    patient &p = patients[patientIndex];
+
+    if (p.GetDischarged() || p.GetTransferred())
+        return false;
+
+    if (p.GetPatientSeverity() < 8)
+        return false;
+
+    const int INF = numeric_limits<int>::max();
+
+    map<int, int> dist;
+    map<int, int> previous;
+
+    for (const auto &node : hospitalGraph) {
+        dist[node.first] = INF;
+        previous[node.first] = -1;
+    }
+
+    if (hospitalGraph.find(0) == hospitalGraph.end()) {
+        cout << "Hospital network is not configured.\n";
+        return false;
+    }
+
+    priority_queue<
+        pair<int, int>,
+        vector<pair<int, int>>,
+        greater<pair<int, int>>
+    > pq;
+
+    dist[0] = 0;
+    pq.push({0, 0});
+
+    // Dijkstra's shortest path algorithm
+    while (!pq.empty()) {
+        int currentDistance = pq.top().first;
+        int currentHospital = pq.top().second;
+        pq.pop();
+
+        if (currentDistance > dist[currentHospital])
+            continue;
+
+        for (const auto &edge : hospitalGraph[currentHospital]) {
+            int nextHospital = edge.first;
+            int weight = edge.second;
+
+            if (currentDistance + weight < dist[nextHospital]) {
+                dist[nextHospital] = currentDistance + weight;
+                previous[nextHospital] = currentHospital;
+
+                pq.push({dist[nextHospital], nextHospital});
+            }
+        }
+    }
+
+    int destinationID = -1;
+    int minimumDistance = INF;
+
+    string required = p.GetRequiredSpecialisation();
+
+    // Select the nearest suitable hospital
+    for (const auto &h : partnerHospitals) {
+        if (h.availableICUBeds <= 0)
+            continue;
+
+        bool specializationMatch =
+            required.empty() ||
+            required == "NULL" ||
+            h.specialization == required ||
+            h.specialization == "Multi-speciality" ||
+            h.specialization == "Multispeciality";
+
+        if (!specializationMatch)
+            continue;
+
+        if (dist.find(h.hospital_id) == dist.end())
+            continue;
+
+        if (dist[h.hospital_id] == INF)
+            continue;
+
+        if (dist[h.hospital_id] < minimumDistance) {
+            minimumDistance = dist[h.hospital_id];
+            destinationID = h.hospital_id;
+        }
+    }
+
+    if (destinationID == -1) {
+        cout << "No reachable partner hospital has a suitable available ICU bed.\n";
+        return false;
+    }
+
+    PartnerHospital *destination = nullptr;
+
+    for (auto &h : partnerHospitals) {
+        if (h.hospital_id == destinationID) {
+            destination = &h;
+            break;
+        }
+    }
+
+    if (destination == nullptr)
+        return false;
+
+    // Reconstruct shortest path
+    vector<int> path;
+    int current = destinationID;
+
+    while (current != -1) {
+        path.push_back(current);
+        current = previous[current];
+    }
+
+    reverse(path.begin(), path.end());
+
+    // Release the assigned doctor
+    for (auto it = assignments.begin(); it != assignments.end();) {
+        if (it->first == p.GetPatientID()) {
+            for (auto &d : doctors) {
+                if (d.GetDocID() == it->second) {
+                    d.SetDocAvailability(true);
+                    break;
+                }
+            }
+
+            it = assignments.erase(it);
+        }
+        else {
+            ++it;
+        }
+    }
+
+    // Reserve one ICU bed at the destination
+    destination->availableICUBeds--;
+
+    p.setTransferred(true);
+    p.setTransferHospital(destination->name);
+
+    TransferRecord record;
+
+    record.patient_id = p.GetPatientID();
+    record.hospital_name = destination->name;
+    record.location = destination->location;
+    record.reason = "No suitable ICU bed available locally";
+    record.transfer_time = time(nullptr);
+    record.distanceKm = minimumDistance;
+
+    transferRecords.push_back(record);
+
+    cout << "\n========== PATIENT TRANSFER ==========\n";
+
+    cout << "Patient ID: " << p.GetPatientID();
+    cout << "\nPatient Name: " << p.GetPatientName();
+    cout << "\nDestination: " << destination->name;
+    cout << "\nLocation: " << destination->location;
+    cout << "\nDistance: " << minimumDistance << " km";
+
+    cout << "\n\nShortest Route:\n";
+
+    for (size_t i = 0; i < path.size(); i++) {
+        int id = path[i];
+
+        if (id == 0) {
+            cout << HospitalName;
+        }
+        else {
+            for (const auto &h : partnerHospitals) {
+                if (h.hospital_id == id) {
+                    cout << h.name;
+                    break;
+                }
+            }
+        }
+
+        if (i != path.size() - 1)
+            cout << " -> ";
+    }
+
+    cout << "\nRemaining ICU Beds: "
+         << destination->availableICUBeds;
+
+    cout << "\nTransfer Status: Successful\n";
+    cout << "======================================\n";
+
+    processDoctorWaitingQueue();
+
+    return true;
+}
+void hospital::showDoctorWaitingQueue()
+{
+    if (doctorWaitingQueue.empty()) {
+        cout << "\nDoctor waiting queue is empty.\n";
+        return;
+    }
+
+    priority_queue<pair<int, int>> temp = doctorWaitingQueue;
+
+    cout << "\n========== DOCTOR WAITING QUEUE ==========\n";
+
+    while (!temp.empty()) {
+        int patientIndex = -temp.top().second;
+        temp.pop();
+
+        if (patientIndex < 0 ||
+            patientIndex >= static_cast<int>(patients.size()))
+            continue;
+
+        patient &p = patients[patientIndex];
+
+        if (p.GetDischarged() || p.GetTransferred())
+            continue;
+
+        cout<< "Patient ID: " << p.GetPatientID() << '\n';
+        cout << "Name: " << p.GetPatientName() << '\n';
+        cout << "Required Specialisation: "
+             << p.GetRequiredSpecialisation() << '\n';
+        cout << "-----------------------------\n";
     }
 }

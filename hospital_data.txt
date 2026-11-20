@@ -1,3 +1,19 @@
+<<<<<<< HEAD
+P 101 "Aviral" 20 M "Pain" 10 1 "NULL" 20 20 20 20 20 20 0 0 ""
+P 102 "Avi" 20 M "Pain" 10 1 "NULL" 20 20 20 20 20 20 0 1 "A"
+D 201 "Arin" 20 M 0 "Cardiology"
+D 202 "Arun" 20 M 1 "General"
+B 301 "General" 1 -1
+B 302 "General" 1 -1
+B 303 "ICU" 0 101
+A 101 201
+H 1 "A" "City" "Cardiology" 2 1
+H 2 "B" "City" "Cardiology" 3 3
+R 0 1 10
+R 0 2 15
+T 102 "A" "City" "No suitable ICU bed available locally" 1795167567 10
+=======
 P 101 "aviral" 20 M "Pain" 10 1 "NULL" 20 20 20 20 20 20 1
 D 201 "saini" 20 M 1 "General"
 B 301 "ICU" 1 -1
+>>>>>>> origin/main

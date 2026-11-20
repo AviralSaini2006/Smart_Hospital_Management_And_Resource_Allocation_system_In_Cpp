@@ -20,11 +20,16 @@ private:
     double temperature;
 
     bool discharged;
+    bool transferred;
+    string transferHospital;
 
 public:
     patient(int id, string name, int age, char gender,
             string diagnosis, int sev, bool emergency_status,
-            string required_specialisation, bool discharged = false);
+            string required_specialisation,
+            bool discharged = false,
+            bool transferred = false,
+            string transferHospital = "");
 
     int GetPatientID();
     int GetPatientAge();
@@ -53,6 +58,12 @@ public:
 
     bool GetDischarged();
     void setDischarged(bool status);
+
+    bool GetTransferred();
+    void setTransferred(bool status);
+
+    string GetTransferHospital();
+    void setTransferHospital(string name);
 };
 
 #endif
