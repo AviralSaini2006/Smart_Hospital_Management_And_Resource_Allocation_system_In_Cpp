@@ -6,10 +6,29 @@
 #include"Bed.h"
 #include"Appointment.h"
 #include<vector>
-#include<queue>
-#include<utility>
+#include <map>
+#include <string>
+#include <ctime>
+#include <queue>
+#include <utility>
 using namespace std;
+struct PartnerHospital {
+    int hospital_id;
+    string name;
+    string location;
+    string specialization;
+    int totalICUBeds;
+    int availableICUBeds;
+};
 
+struct TransferRecord {
+    int patient_id;
+    string hospital_name;
+    string location;
+    string reason;
+    time_t transfer_time;
+    int distanceKm;
+};
 class hospital{
     private:
        string HospitalName;
@@ -21,8 +40,14 @@ class hospital{
        priority_queue<pair<int, int>> doctorWaitingQueue;
        appointmentbook book;   // all appointments (conflict checking lives inside it)
        vector<pair<int,int> > assignments;   // (patient_id, doctor_id) for patients currently under a doctor
+       vector<PartnerHospital> partnerHospitals;
+vector<TransferRecord> transferRecords;
+
+map<int, vector<pair<int, int>>> hospitalGraph;
     public:
-       hospital(string h):HospitalName(h){}
+       hospital(string h) : HospitalName(h) {
+    hospitalGraph[0];
+}
        bool bedExists(int id);       // true if a bed with this ID is already registered
        void showFreeBeds();          // lists only the free beds and a count per ward
        bool patientExists(int id);   // true if a patient with this ID is already registered
@@ -69,6 +94,19 @@ bool assessPatient(int patient_id, int severity, string diagnosis);
 bool initialTriage(int patient_id, int severity);
 bool completeAssessment(int patient_id,string diagnosis,int systolicBP,int diastolicBP,int heartRate,int spo2,int respiratoryRate,double temperature);
 void processDoctorWaitingQueue();   // total / free / occupied beds for each ward   // patient - doctor - bed for everyone currently admitted
+bool registerPartnerHospital(int id, string name, string location,
+                             string specialization, int icuBeds);
+
+bool addHospitalRoute(int fromID, int toID, int distanceKm);
+
+bool updatePartnerICUAvailability(int id, int availableBeds);
+
+void showPartnerHospitals();
+void showHospitalRoutes();
+void showTransferRecords();
+
+bool transferCriticalPatient(int patientIndex);
+void showDoctorWaitingQueue();
 }; 
 
 #endif

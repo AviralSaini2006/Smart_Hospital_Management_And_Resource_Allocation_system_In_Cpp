@@ -6,7 +6,7 @@ using namespace std;
 patient::patient(int patient_id, string patient_name, int patient_age,
                  char patient_gender, string diagnosis, int severity,
                  bool emergency_status, string required_specialisation,
-                 bool discharged) {
+                 bool discharged, bool transferred, string transferHospital) {
 
     this->patient_id = patient_id;
     this->patient_age = patient_age;
@@ -25,6 +25,8 @@ patient::patient(int patient_id, string patient_name, int patient_age,
     temperature = 0.0;
 
     this->discharged = discharged;
+    this->transferred = transferred;
+    this->transferHospital = transferHospital;
 }
 
 int patient::GetPatientID() { return patient_id; }
@@ -43,10 +45,19 @@ void patient::PatientDisplay() {
     cout << "Patient Gender : " << GetPatientGender() << endl;
     cout << "Patient Diagnosis : " << GetPatientDiagnosis() << endl;
     cout << "Patient Severity : " << GetPatientSeverity() << endl;
+
     cout << "Patient Emergency Status : "
          << (GetPatientEmergencyStatus() ? "YES" : "NO") << endl;
-    cout << "Patient Status : "
-         << (GetDischarged() ? "Discharged" : "Active") << endl;
+
+    if (GetTransferred()) {
+        cout << "Patient Status : Transferred\n";
+        cout << "Transferred To : " << GetTransferHospital() << endl;
+    }
+    else {
+        cout << "Patient Status : "
+             << (GetDischarged() ? "Discharged" : "Active") << endl;
+    }
+
     cout << "Required Specialisation : "
          << GetRequiredSpecialisation() << endl;
 }
@@ -86,4 +97,20 @@ bool patient::GetDischarged() {
 
 void patient::setDischarged(bool status) {
     discharged = status;
+}
+
+bool patient::GetTransferred() {
+    return transferred;
+}
+
+void patient::setTransferred(bool status) {
+    transferred = status;
+}
+
+string patient::GetTransferHospital() {
+    return transferHospital;
+}
+
+void patient::setTransferHospital(string name) {
+    transferHospital = name;
 }

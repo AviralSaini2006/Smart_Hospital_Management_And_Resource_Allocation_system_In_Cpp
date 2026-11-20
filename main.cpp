@@ -23,6 +23,7 @@ void patientMenu(hospital &h) {
         cout << "5. Show All Patients\n";
         cout << "6. Show Admitted Patients\n";
         cout << "7. Show Waiting Queue\n";
+        cout << "8. Show Doctor Waiting Queue\n";
         cout << "0. Back\n";
         cout << "Enter choice: ";
 
@@ -71,6 +72,7 @@ void patientMenu(hospital &h) {
 
     cout << "Patient ID: ";
     cin >> id;
+    
 
     cout << "Systolic BP: ";
     cin >> systolicBP;
@@ -143,7 +145,9 @@ void patientMenu(hospital &h) {
             case 7:
                 h.showQueue();
                 break;
-
+            case 8:
+                h.showDoctorWaitingQueue();
+                break;
             case 0:
                 break;
 
@@ -409,7 +413,106 @@ void dataMenu(hospital &h) {
 
     } while (choice != 0);
 }
-using namespace std;
+void partnerHospitalMenu(hospital &h)
+{
+    int choice;
+
+    do {
+        cout << "\n========== PARTNER HOSPITAL MANAGEMENT ==========\n";
+        cout << "1. Register Partner Hospital\n";
+        cout << "2. Add Hospital Route\n";
+        cout << "3. Show Partner Hospitals\n";
+        cout << "4. Show Hospital Network\n";
+        cout << "5. Update ICU Availability\n";
+        cout << "6. Show Transfer Records\n";
+        cout << "0. Back\n";
+        cout << "Enter choice: ";
+
+        cin >> choice;
+
+        switch (choice) {
+
+            case 1: {
+                int id, beds;
+                string name, location, specialization;
+
+                cout << "Hospital ID: ";
+                cin >> id;
+
+                cout << "Hospital Name: ";
+                cin >> ws;
+                getline(cin, name);
+
+                cout << "Location: ";
+                getline(cin, location);
+
+                cout << "Specialization: ";
+                getline(cin, specialization);
+
+                cout << "Total ICU Beds: ";
+                cin >> beds;
+
+                h.registerPartnerHospital(
+                    id, name, location, specialization, beds
+                );
+
+                break;
+            }
+
+            case 2: {
+                int fromID, toID, distance;
+
+                cout << "\nEnter 0 for MediAlloc.\n";
+
+                cout << "Starting Hospital ID: ";
+                cin >> fromID;
+
+                cout << "Destination Hospital ID: ";
+                cin >> toID;
+
+                cout << "Distance in KM: ";
+                cin >> distance;
+
+                h.addHospitalRoute(fromID, toID, distance);
+
+                break;
+            }
+
+            case 3:
+                h.showPartnerHospitals();
+                break;
+
+            case 4:
+                h.showHospitalRoutes();
+                break;
+
+            case 5: {
+                int id, available;
+
+                cout << "Partner Hospital ID: ";
+                cin >> id;
+
+                cout << "Currently Available ICU Beds: ";
+                cin >> available;
+
+                h.updatePartnerICUAvailability(id, available);
+
+                break;
+            }
+
+            case 6:
+                h.showTransferRecords();
+                break;
+
+            case 0:
+                break;
+
+            default:
+                cout << "Invalid choice.\n";
+        }
+
+    } while (choice != 0);
+}
 int main() {
     hospital h("MediAlloc");
     int choice;
@@ -421,6 +524,7 @@ int main() {
         cout << "3. Appointments\n";
         cout << "4. Reports\n";
         cout << "5. Save / Load Data\n";
+        cout << "6. Partner Hospital Management\n";
         cout << "0. Exit\n";
         cout << "Enter choice: ";
 
@@ -451,7 +555,9 @@ int main() {
             case 5:
                 dataMenu(h);
                 break;
-
+            case 6:
+                partnerHospitalMenu(h);
+                break;
 case 0:
                 cout << "Exiting MediAlloc. Goodbye!\n";
                 break;
