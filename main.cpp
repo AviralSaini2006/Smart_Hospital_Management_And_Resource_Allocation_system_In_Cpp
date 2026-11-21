@@ -1,44 +1,40 @@
-#include"Hospital.h"
-#include<iostream>
-#include <cstdlib>
+
+#include "Hospital.h"
+#include "TerminalUI.h"
+#include <iostream>
+#include <string>
+#include <limits>
+
 using namespace std;
 
-void clearScreen()
-{
-#ifdef _WIN32
-    system("cls");
-#else
-    system("clear");
-#endif
-}
 void patientMenu(hospital &h) {
-    int choice;
+    while (true) {
+        UI::header("PATIENT SERVICES");
 
-    do {
-        cout << "\n===== PATIENT SERVICES =====\n";
-        cout << "1. Register Patient\n";
-        cout << "2. Doctor Assessment\n";
-        cout << "3. Discharge Patient\n";
-        cout << "4. Transfer Patient Bed\n";
-        cout << "5. Show All Patients\n";
-        cout << "6. Show Admitted Patients\n";
-        cout << "7. Show Waiting Queue\n";
-        cout << "8. Show Doctor Waiting Queue\n";
-        cout << "0. Back\n";
-        cout << "Enter choice: ";
+        UI::menuItem('1', "Register Patient");
+        UI::menuItem('2', "Doctor Assessment");
+        UI::menuItem('3', "Discharge Patient");
+        UI::menuItem('4', "Transfer Patient Bed");
+        UI::menuItem('5', "Show All Patients");
+        UI::menuItem('6', "Show Admitted Patients");
+        UI::menuItem('7', "Show Waiting Queue");
+        UI::menuItem('8', "Show Doctor Waiting Queue");
+        UI::menuItem('0', "Back to Dashboard");
 
-        if (!(cin >> choice)) {
-            cin.clear();
-            cin.ignore(10000, '\n');
-            cout << "Invalid input.\n";
-            continue;
-        }
+        UI::footer();
+        int choice = UI::getChoice(8);
+
+        if (choice == 0) return;
+
+        UI::header("PATIENT SERVICES", "PATIENT MANAGEMENT");
 
         switch (choice) {
             case 1: {
                 int id, age;
-                string name;
+                string name, req;
                 char gender;
+
+                UI::section("PATIENT REGISTRATION");
 
                 cout << "Patient ID: ";
                 cin >> id;
@@ -50,69 +46,61 @@ void patientMenu(hospital &h) {
                 cout << "Age: ";
                 cin >> age;
 
-                cout << "Gender: ";
+                cout << "Gender (M/F/O): ";
                 cin >> gender;
 
-                cout << "Required Doctor Specialisation (or NULL for any): ";
-                string req;
-                cin >> req;
+                gender = toupper(gender);
+
+                cout << "Required Doctor Specialisation (or NULL): ";
+                getline(cin >> ws, req);
+
                 patient p(id, name, age, gender, "NULL", -1, false, req);
                 h.registerPatient(p);
                 break;
             }
 
             case 2: {
-    int id;
-    int systolicBP, diastolicBP;
-    int heartRate, spo2, respiratoryRate;
-    double temperature;
-    string diagnosis;
+                int id, systolicBP, diastolicBP;
+                int heartRate, spo2, respiratoryRate;
+                double temperature;
+                string diagnosis;
 
-    cout << "\n===== DOCTOR ASSESSMENT =====\n";
+                UI::section("DOCTOR ASSESSMENT");
 
-    cout << "Patient ID: ";
-    cin >> id;
-    
+                cout << "Patient ID: ";
+                cin >> id;
 
-    cout << "Systolic BP: ";
-    cin >> systolicBP;
+                cout << "Systolic BP: ";
+                cin >> systolicBP;
 
-    cout << "Diastolic BP: ";
-    cin >> diastolicBP;
+                cout << "Diastolic BP: ";
+                cin >> diastolicBP;
 
-    cout << "Heart Rate (BPM): ";
-    cin >> heartRate;
+                cout << "Heart Rate (BPM): ";
+                cin >> heartRate;
 
-    cout << "SpO2 (%): ";
-    cin >> spo2;
+                cout << "SpO2 (%): ";
+                cin >> spo2;
 
-    cout << "Respiratory Rate: ";
-    cin >> respiratoryRate;
+                cout << "Respiratory Rate: ";
+                cin >> respiratoryRate;
 
-    cout << "Temperature (Celsius): ";
-    cin >> temperature;
+                cout << "Temperature (Celsius): ";
+                cin >> temperature;
 
-    cout << "Diagnosis: ";
-    cin >> ws;
-    getline(cin, diagnosis);
+                cout << "Diagnosis: ";
+                cin >> ws;
+                getline(cin, diagnosis);
 
-    h.completeAssessment(
-        id,
-        diagnosis,
-        systolicBP,
-        diastolicBP,
-        heartRate,
-        spo2,
-        respiratoryRate,
-        temperature
-    );
-
-    break;
-}
+                h.completeAssessment(
+                    id, diagnosis, systolicBP, diastolicBP,
+                    heartRate, spo2, respiratoryRate, temperature
+                );
+                break;
+            }
 
             case 3: {
                 int id;
-
                 cout << "Patient ID to discharge: ";
                 cin >> id;
 
@@ -134,54 +122,41 @@ void patientMenu(hospital &h) {
                 break;
             }
 
-            case 5:
-                h.showPatients();
-                break;
-
-            case 6:
-                h.showAdmitted();
-                break;
-
-            case 7:
-                h.showQueue();
-                break;
-            case 8:
-                h.showDoctorWaitingQueue();
-                break;
-            case 0:
-                break;
-
-            default:
-                cout << "Invalid choice.\n";
+            case 5: h.showPatients(); break;
+            case 6: h.showAdmitted(); break;
+            case 7: h.showQueue(); break;
+            case 8: h.showDoctorWaitingQueue(); break;
         }
 
-    } while (choice != 0);
+        UI::pause();
+    }
 }
+
 void hospitalSetupMenu(hospital &h) {
-    int choice;
+    while (true) {
+        UI::header("HOSPITAL SETUP");
 
-    do {
-        cout << "\n===== HOSPITAL SETUP =====\n";
-        cout << "1. Register Doctor\n";
-        cout << "2. Register Bed\n";
-        cout << "3. Show Doctors\n";
-        cout << "4. Show All Beds\n";
-        cout << "5. Show Free Beds\n";
-        cout << "0. Back\n";
-        cout << "Enter choice: ";
+        UI::menuItem('1', "Register Doctor");
+        UI::menuItem('2', "Register Bed");
+        UI::menuItem('3', "Show Doctors");
+        UI::menuItem('4', "Show All Beds");
+        UI::menuItem('5', "Show Free Beds");
+        UI::menuItem('0', "Back to Dashboard");
 
-        if (!(cin >> choice)) {
-            cin.clear();
-            cin.ignore(10000, '\n');
-            cout << "Invalid input.\n";
-            continue;
-        }
+        UI::footer();
+        int choice = UI::getChoice(5);
+
+        if (choice == 0) return;
+
+        UI::header("HOSPITAL SETUP", "DOCTOR AND BED MANAGEMENT");
 
         switch (choice) {
             case 1: {
                 int id, age;
                 string name, specialization;
                 char gender;
+
+                UI::section("DOCTOR REGISTRATION");
 
                 cout << "Doctor ID: ";
                 cin >> id;
@@ -193,15 +168,15 @@ void hospitalSetupMenu(hospital &h) {
                 cout << "Age: ";
                 cin >> age;
 
-                cout << "Gender: ";
+                cout << "Gender (M/F/O): ";
                 cin >> gender;
 
+                gender = toupper(static_cast<unsigned char>(gender));
+
                 cout << "Specialization: ";
-                cin >> ws;
-                getline(cin, specialization);
+                getline(cin >> ws, specialization);
 
-                doctor d(id, name, age, gender,true, specialization);
-
+                doctor d(id, name, age, gender, true, specialization);
                 h.registerDoctor(d);
                 break;
             }
@@ -210,56 +185,54 @@ void hospitalSetupMenu(hospital &h) {
                 int id;
                 string ward;
 
+                UI::section("BED REGISTRATION");
+
                 cout << "Bed ID: ";
                 cin >> id;
 
                 cout << "Ward type (ICU/General): ";
                 cin >> ward;
 
+for (char &c : ward)
+    c = static_cast<char>(
+        tolower(static_cast<unsigned char>(c))
+    );
+
+if (ward == "icu")
+    ward = "ICU";
+else if (ward == "general")
+    ward = "General";
+
                 bed b(id, ward, true, -1);
                 h.registerBed(b);
                 break;
             }
 
-            case 3:
-                h.showDoctors();
-                break;
-
-            case 4:
-                h.showBeds();
-                break;
-
-            case 5:
-                h.showFreeBeds();
-                break;
-
-            case 0:
-                break;
-
-            default:
-                cout << "Invalid choice.\n";
+            case 3: h.showDoctors(); break;
+            case 4: h.showBeds(); break;
+            case 5: h.showFreeBeds(); break;
         }
 
-    } while (choice != 0);
+        UI::pause();
+    }
 }
+
 void appointmentMenu(hospital &h) {
-    int choice;
+    while (true) {
+        UI::header("APPOINTMENT MANAGEMENT");
 
-    do {
-        cout << "\n===== APPOINTMENTS =====\n";
-        cout << "1. Book Appointment\n";
-        cout << "2. Cancel Appointment\n";
-        cout << "3. Complete Appointment\n";
-        cout << "4. Show Appointments\n";
-        cout << "0. Back\n";
-        cout << "Enter choice: ";
+        UI::menuItem('1', "Book Appointment");
+        UI::menuItem('2', "Cancel Appointment");
+        UI::menuItem('3', "Complete Appointment");
+        UI::menuItem('4', "Show Appointments");
+        UI::menuItem('0', "Back to Dashboard");
 
-        if (!(cin >> choice)) {
-            cin.clear();
-            cin.ignore(10000, '\n');
-            cout << "Invalid input.\n";
-            continue;
-        }
+        UI::footer();
+        int choice = UI::getChoice(4);
+
+        if (choice == 0) return;
+
+        UI::header("APPOINTMENTS", "APPOINTMENT MANAGEMENT");
 
         switch (choice) {
             case 1: {
@@ -272,7 +245,7 @@ void appointmentMenu(hospital &h) {
                 cout << "Doctor ID: ";
                 cin >> doctorId;
 
-                cout << "Date and time: ";
+                cout << "Date and time (Use DD-MM-YYYY HH:MM) : ";
                 cin >> ws;
                 getline(cin, dateTime);
 
@@ -282,20 +255,16 @@ void appointmentMenu(hospital &h) {
 
             case 2: {
                 int id;
-
                 cout << "Appointment ID to cancel: ";
                 cin >> id;
-
                 h.cancelAppointment(id);
                 break;
             }
 
             case 3: {
                 int id;
-
                 cout << "Appointment ID to complete: ";
                 cin >> id;
-
                 h.completeAppointment(id);
                 break;
             }
@@ -303,135 +272,92 @@ void appointmentMenu(hospital &h) {
             case 4:
                 h.showAppointments();
                 break;
-
-            case 0:
-                break;
-
-            default:
-                cout << "Invalid choice.\n";
         }
 
-    } while (choice != 0);
+        UI::pause();
+    }
 }
+
 void reportsMenu(hospital &h) {
-    int choice;
+    while (true) {
+        UI::header("HOSPITAL REPORTS");
 
-    do {
-        cout << "\n===== REPORTS =====\n";
-        cout << "1. Patient List\n";
-        cout << "2. Doctor List\n";
-        cout << "3. Bed Status\n";
-        cout << "4. Waiting Queue\n";
-        cout << "5. Admitted Patients\n";
-        cout << "6. Ward Summary\n";
-        cout << "0. Back\n";
-        cout << "Enter choice: ";
+        UI::menuItem('1', "Patient List");
+        UI::menuItem('2', "Doctor List");
+        UI::menuItem('3', "Bed Status");
+        UI::menuItem('4', "Waiting Queue");
+        UI::menuItem('5', "Admitted Patients");
+        UI::menuItem('6', "Ward Summary");
+        UI::menuItem('0', "Back to Dashboard");
 
-        if (!(cin >> choice)) {
-            cin.clear();
-            cin.ignore(10000, '\n');
-            cout << "Invalid input.\n";
-            continue;
-        }
+        UI::footer();
+        int choice = UI::getChoice(6);
+
+        if (choice == 0) return;
+
+        UI::header("HOSPITAL REPORTS", "SYSTEM OVERVIEW");
 
         switch (choice) {
-            case 1:
-                h.showPatients();
-                break;
-
-            case 2:
-                h.showDoctors();
-                break;
-
-            case 3:
-                h.showBeds();
-                break;
-
-            case 4:
-                h.showQueue();
-                break;
-
-            case 5:
-                h.showAdmitted();
-                break;
-
-            case 6:
-                h.showWardSummary();
-                break;
-
-            case 0:
-                break;
-
-            default:
-                cout << "Invalid choice.\n";
+            case 1: h.showPatients(); break;
+            case 2: h.showDoctors(); break;
+            case 3: h.showBeds(); break;
+            case 4: h.showQueue(); break;
+            case 5: h.showAdmitted(); break;
+            case 6: h.showWardSummary(); break;
         }
 
-    } while (choice != 0);
+        UI::pause();
+    }
 }
+
 void dataMenu(hospital &h) {
-    int choice;
+    while (true) {
+        UI::header("DATA MANAGEMENT");
 
-    do {
-        cout << "\n===== DATA MANAGEMENT =====\n";
-        cout << "1. Save All Hospital Data\n";
-        cout << "2. Load All Hospital Data\n";
-        cout << "3. Save Appointments\n";
-        cout << "4. Load Appointments\n";
-        cout << "0. Back\n";
-        cout << "Enter choice: ";
+        UI::menuItem('1', "Save All Hospital Data");
+        UI::menuItem('2', "Load All Hospital Data");
+        UI::menuItem('3', "Save Appointments");
+        UI::menuItem('4', "Load Appointments");
+        UI::menuItem('0', "Back to Dashboard");
 
-        if (!(cin >> choice)) {
-            cin.clear();
-            cin.ignore(10000, '\n');
-            cout << "Invalid input.\n";
-            continue;
-        }
+        UI::footer();
+        int choice = UI::getChoice(4);
+
+        if (choice == 0) return;
+
+        UI::header("DATA MANAGEMENT", "FILE OPERATIONS");
 
         switch (choice) {
-            case 1:
-                h.saveData();
-                break;
-
-            case 2:
-                h.loadData();
-                break;
-
-            case 3:
-                h.saveAppointments();
-                break;
-
-            case 4:
-                h.loadAppointments();
-                break;
-
-            case 0:
-                break;
-
-            default:
-                cout << "Invalid choice.\n";
+            case 1: h.saveData(); break;
+            case 2: h.loadData(); break;
+            case 3: h.saveAppointments(); break;
+            case 4: h.loadAppointments(); break;
         }
 
-    } while (choice != 0);
+        UI::pause();
+    }
 }
-void partnerHospitalMenu(hospital &h)
-{
-    int choice;
 
-    do {
-        cout << "\n========== PARTNER HOSPITAL MANAGEMENT ==========\n";
-        cout << "1. Register Partner Hospital\n";
-        cout << "2. Add Hospital Route\n";
-        cout << "3. Show Partner Hospitals\n";
-        cout << "4. Show Hospital Network\n";
-        cout << "5. Update ICU Availability\n";
-        cout << "6. Show Transfer Records\n";
-        cout << "0. Back\n";
-        cout << "Enter choice: ";
+void partnerHospitalMenu(hospital &h) {
+    while (true) {
+        UI::header("PARTNER HOSPITAL MANAGEMENT");
 
-        cin >> choice;
+        UI::menuItem('1', "Register Partner Hospital");
+        UI::menuItem('2', "Add Hospital Route");
+        UI::menuItem('3', "Show Partner Hospitals");
+        UI::menuItem('4', "Show Hospital Network");
+        UI::menuItem('5', "Update ICU Availability");
+        UI::menuItem('6', "Show Transfer Records");
+        UI::menuItem('0', "Back to Dashboard");
+
+        UI::footer();
+        int choice = UI::getChoice(6);
+
+        if (choice == 0) return;
+
+        UI::header("PARTNER HOSPITAL MANAGEMENT", "HOSPITAL NETWORK");
 
         switch (choice) {
-
             case 1: {
                 int id, beds;
                 string name, location, specialization;
@@ -455,14 +381,13 @@ void partnerHospitalMenu(hospital &h)
                 h.registerPartnerHospital(
                     id, name, location, specialization, beds
                 );
-
                 break;
             }
 
             case 2: {
                 int fromID, toID, distance;
 
-                cout << "\nEnter 0 for MediAlloc.\n";
+                cout << "Enter 0 for MediAlloc.\n";
 
                 cout << "Starting Hospital ID: ";
                 cin >> fromID;
@@ -474,7 +399,6 @@ void partnerHospitalMenu(hospital &h)
                 cin >> distance;
 
                 h.addHospitalRoute(fromID, toID, distance);
-
                 break;
             }
 
@@ -496,44 +420,48 @@ void partnerHospitalMenu(hospital &h)
                 cin >> available;
 
                 h.updatePartnerICUAvailability(id, available);
-
                 break;
             }
 
             case 6:
                 h.showTransferRecords();
                 break;
-
-            case 0:
-                break;
-
-            default:
-                cout << "Invalid choice.\n";
         }
 
-    } while (choice != 0);
+        UI::pause();
+    }
 }
+
 int main() {
     hospital h("MediAlloc");
     int choice;
 
-    do {
-        cout << "\n========== MediAlloc ==========\n";
-        cout << "1. Patient Services\n";
-        cout << "2. Hospital Setup\n";
-        cout << "3. Appointments\n";
-        cout << "4. Reports\n";
-        cout << "5. Save / Load Data\n";
-        cout << "6. Partner Hospital Management\n";
-        cout << "0. Exit\n";
-        cout << "Enter choice: ";
+    UI::init();
 
-        if (!(cin >> choice)) {
-            cin.clear();
-            cin.ignore(10000, '\n');
-            cout << "Invalid input. Enter a number.\n";
-            continue;
-        }
+    UI::header("STARTING MEDIALLOC");
+
+    cout << "\n   Loading hospital data...\n";
+
+    h.loadData();
+    h.loadAppointments();
+
+    cout << "\n   Data loading completed.\n";
+
+    UI::pause();
+
+    while (true) {
+        UI::header("MAIN DASHBOARD");
+
+        UI::menuItem('1', "Patient Services");
+        UI::menuItem('2', "Hospital Setup");
+        UI::menuItem('3', "Appointments");
+        UI::menuItem('4', "Hospital Reports");
+        UI::menuItem('5', "Save / Load Data");
+        UI::menuItem('6', "Partner Hospital Management");
+        UI::menuItem('0', "Exit Application");
+
+        UI::footer();
+        int choice = UI::getChoice(6);
 
         switch (choice) {
             case 1:
@@ -555,18 +483,24 @@ int main() {
             case 5:
                 dataMenu(h);
                 break;
+
             case 6:
                 partnerHospitalMenu(h);
                 break;
-case 0:
-                cout << "Exiting MediAlloc. Goodbye!\n";
-                break;
 
-            default:
-                cout << "Invalid choice. Try again.\n";
-        }
+         case 0:
+    UI::header("SAVING DATA");
 
-    } while (choice != 0);
+    cout << "\n   Saving hospital data...\n";
+    h.saveData();
+
+    cout << "\n   Saving appointments...\n";
+    h.saveAppointments();
+
+    cout << "\n   All data saved successfully.\n";
+    cout << "\n   Thank you for using MediAlloc!\n";
 
     return 0;
+        }
+    }
 }

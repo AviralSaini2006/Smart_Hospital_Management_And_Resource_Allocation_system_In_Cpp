@@ -12,7 +12,27 @@
 #include<cctype>
 
 using namespace std;
+static string trimText(string s)
+{
+    size_t start = s.find_first_not_of(" \t\n\r");
 
+    if (start == string::npos)
+        return "";
+
+    size_t end = s.find_last_not_of(" \t\n\r");
+
+    return s.substr(start, end - start + 1);
+}
+
+static string normalizeText(string s)
+{
+    s = trimText(s);
+
+    for (char &c : s)
+        c = static_cast<char>(tolower(static_cast<unsigned char>(c)));
+
+    return s;
+}
        bool hospital::bedExists(int id){
           for(size_t i=0;i<beds.size();i++){
               if(beds[i].GetBedID()==id) return true;
@@ -46,10 +66,38 @@ void hospital::AddDoctor(doctor d) {
 void hospital::AddBed(bed b) {
     beds.push_back(b);
 }
-      bool hospital::registerPatient(patient p)
+      
+bool hospital::registerPatient(patient p)
 {
+    // P03: Duplicate ID
     if (patientExists(p.GetPatientID())) {
         cout << "Error: Patient ID already exists.\n";
+        return false;
+    }
+
+    // P04 and P05: Invalid ID
+    if (p.GetPatientID() <= 0) {
+        cout << "Error: Patient ID must be greater than 0.\n";
+        return false;
+    }
+
+    // P06 and P07: Invalid age
+    if (p.GetPatientAge() < 1 || p.GetPatientAge() > 120) {
+        cout << "Error: Patient age must be between 1 and 120.\n";
+        return false;
+    }
+
+    // P09: Invalid gender
+    char gender = toupper(p.GetPatientGender());
+
+    if (gender != 'M' && gender != 'F' && gender != 'O') {
+        cout << "Error: Gender must be M, F, or O.\n";
+        return false;
+    }
+
+    // Empty name validation
+    if (p.GetPatientName().find_first_not_of(" \t\n") == string::npos) {
+        cout << "Error: Patient name cannot be empty.\n";
         return false;
     }
 
@@ -67,25 +115,87 @@ void hospital::AddBed(bed b) {
     return true;
 }
 
-bool hospital::registerDoctor(doctor d) {
+
+bool hospital::registerDoctor(doctor d)
+{
+    if (d.GetDocID() <= 0) {
+        cout << "Error: Doctor ID must be greater than 0.\n";
+        return false;
+    }
+
     if (doctorExists(d.GetDocID())) {
         cout << "Error: Doctor ID already exists.\n";
         return false;
     }
 
+    if (trimText(d.GetDocName()).empty()) {
+        cout << "Error: Doctor name cannot be empty.\n";
+        return false;
+    }
+
+    if (d.GetDocAge() < 18 || d.GetDocAge() > 100) {
+        cout << "Error: Doctor age must be between 18 and 100.\n";
+        return false;
+    }
+
+    char gender = static_cast<char>(
+        toupper(static_cast<unsigned char>(d.GetDocGender()))
+    );
+
+    if (gender != 'M' && gender != 'F' && gender != 'O') {
+        cout << "Error: Gender must be M, F, or O.\n";
+        return false;
+    }
+
+    if (trimText(d.GetDocSpecialisation()).empty()) {
+        cout << "Error: Specialisation cannot be empty.\n";
+        return false;
+    }
+
     AddDoctor(d);
+
+    cout << "\nDoctor registered successfully.\n";
+
     processDoctorWaitingQueue();
+
     return true;
 }
 
-bool hospital::registerBed(bed b) {
+bool hospital::registerBed(bed b)
+{
+    if (b.GetBedID() <= 0) {
+        cout << "Error: Bed ID must be greater than 0.\n";
+        return false;
+    }
+
     if (bedExists(b.GetBedID())) {
         cout << "Error: Bed ID already exists.\n";
         return false;
     }
 
+    string ward = normalizeText(b.GetWardType());
+
+    if (ward != "icu" && ward != "general") {
+        cout << "Error: Ward type must be ICU or General.\n";
+        return false;
+    }
+
+    if (!b.GetBedAvailability()) {
+        cout << "Error: A newly registered bed must be available.\n";
+        return false;
+    }
+
+    if (b.GetPatientBedID() != -1) {
+        cout << "Error: A new bed cannot already have a patient.\n";
+        return false;
+    }
+
     AddBed(b);
+
+    cout << "\nBed registered successfully.\n";
+
     processWaitingQueue();
+
     return true;
 }
 
@@ -280,6 +390,7 @@ void hospital::allocateBed()
     if (!any)
         cout << "No new bed was allocated.\n";
 }
+
 
 
 // frees the doctor and the bed of a patient
@@ -1150,24 +1261,24 @@ bool hospital::completeAssessment(
 
     return true;
 }
+static string normalizeSpecialisation(string s)
+{
+    while (!s.empty() && isspace((unsigned char)s.front()))
+        s.erase(s.begin());
 
+    while (!s.empty() && isspace((unsigned char)s.back()))
+        s.pop_back();
+
+    for (char &c : s)
+        c = tolower((unsigned char)c);
+
+    return s;
+}
 
 void hospital::processDoctorWaitingQueue()
 {
     vector<pair<int, int>> skipped;
 
-    auto normalize = [](string s) {
-        while (!s.empty() && isspace((unsigned char)s.front()))
-            s.erase(s.begin());
-
-        while (!s.empty() && isspace((unsigned char)s.back()))
-            s.pop_back();
-
-        for (char &c : s)
-            c = tolower((unsigned char)c);
-
-        return s;
-    };
 
     while (!doctorWaitingQueue.empty())
     {
@@ -1210,7 +1321,8 @@ void hospital::processDoctorWaitingQueue()
         if (alreadyAssigned)
             continue;
 
-        string required = normalize(p.GetRequiredSpecialisation());
+        string required =
+    ::normalizeSpecialisation(p.GetRequiredSpecialisation());
 
         int doctorIndex = -1;
 
@@ -1219,8 +1331,8 @@ void hospital::processDoctorWaitingQueue()
             if (!doctors[i].GetDocAvailability())
                 continue;
 
-            string availableSpecialisation =
-                normalize(doctors[i].GetDocSpecialisation());
+       string availableSpecialisation =
+    ::normalizeSpecialisation(doctors[i].GetDocSpecialisation());
 
             bool match =
                 required.empty() ||
