@@ -521,12 +521,7 @@ void hospital::loadAppointments(){
 }
 
 
-// ---------------- File handling (save / load) ----------------
-// One line per record:
-//   P id name age gender diagnosis severity emergency required_specialisation
-//   D id name age gender availability specialisation
-//   B id ward availability patient_id
-//   A patient_id doctor_id
+
 const string DATA_FILE="hospital_data.txt";
 
 
